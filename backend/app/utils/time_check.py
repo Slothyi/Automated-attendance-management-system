@@ -1,14 +1,13 @@
-from datetime import datetime, time
-import pytz
+from datetime import datetime, timedelta, timezone
 
-# def is_within_time():
-#     ist = pytz.timezone("Asia/Kolkata")
-#     now = datetime.now(ist)
+def can_mark_attendance(last_time):
+    if last_time is None:
+        return True
 
-#     minutes = now.hour * 60 + now.minute
+    # 🔥 FIX: convert naive → aware
+    if last_time.tzinfo is None:
+        last_time = last_time.replace(tzinfo=timezone.utc)
 
-#     return 570 <= minutes <= 630
+    now = datetime.now(timezone.utc)
 
-
-def is_within_time():
-    return True
+    return now >= last_time + timedelta(hours=19)

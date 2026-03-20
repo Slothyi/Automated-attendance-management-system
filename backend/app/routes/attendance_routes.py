@@ -1,96 +1,72 @@
-# from fastapi import APIRouter, File, UploadFile, Form, Depends
-# from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-# from app.controllers.attendance_controller import (
-#     mark_attendance,
-#     unmark_attendance,
-#     get_today_status
-# )
-# from app.utils.jwt_handler import verify_token
-
-# router = APIRouter()
-
-# security = HTTPBearer()
-
-# # ✅ MARK ATTENDANCE
-# @router.post("/mark")
-# def mark(
-#     lat: float = Form(...),
-#     lng: float = Form(...),
-#     file: UploadFile = File(...),
-#     credentials: HTTPAuthorizationCredentials = Depends(security)
-# ):
-#     token = credentials.credentials
-#     user = verify_token(token)
-
-#     return mark_attendance(user["id"], lat, lng, file)
-
-
-# # ✅ UNMARK ATTENDANCE
-# @router.post("/unmark")
-# def unmark(
-#     credentials: HTTPAuthorizationCredentials = Depends(security)
-# ):
-#     token = credentials.credentials
-#     user = verify_token(token)
-
-#     return unmark_attendance(user["id"])
-
-
-# # ✅ TODAY STATUS
-# @router.get("/status")
-# def status(
-#     credentials: HTTPAuthorizationCredentials = Depends(security)
-# ):
-#     token = credentials.credentials
-#     user = verify_token(token)
-
-#     return get_today_status(user["id"])
-
-
-from fastapi import APIRouter, File, UploadFile, Form, Header
+from fastapi import APIRouter, File, UploadFile, Form, Header, HTTPException, Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from app.controllers.attendance_controller import (
     mark_attendance,
     unmark_attendance,
     get_today_status
 )
+
 from app.utils.jwt_handler import verify_token
 
 router = APIRouter()
+security = HTTPBearer()
+
+# =========================
+# 🔐 TOKEN DEPENDENCY
+# =========================
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    print("HEADER RECEIVED:", credentials)
+
+    token = credentials.credentials   # ✅ correct token extraction
+
+    user = verify_token(token)
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    return user
 
 
+# =========================
+# ✅ MARK ATTENDANCE
+# =========================
 @router.post("/mark")
 def mark(
     lat: float = Form(...),
     lng: float = Form(...),
     file: UploadFile = File(...),
-    authorization: str = Header(...)
+    user: dict = Depends(get_current_user)   # ✅ CORRECT
 ):
     try:
-        token = authorization.split(" ")[1]
-    except:
-        return {"error": "Invalid token"}
+        return mark_attendance(user["id"], lat, lng, file)
 
-    user = verify_token(token)
-    return mark_attendance(user["id"], lat, lng, file)
+    except Exception as e:
+        print("❌ ERROR:", str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
+# =========================
+# ❌ UNMARK
+# =========================
 @router.post("/unmark")
-def unmark(authorization: str = Header(...)):
+def unmark(user: dict = Depends(get_current_user)):   # ✅ CORRECT
     try:
-        token = authorization.split(" ")[1]
-    except:
-        return {"error": "Invalid token"}
+        return unmark_attendance(user["id"])
 
-    user = verify_token(token)
-    return unmark_attendance(user["id"])
+    except Exception as e:
+        print("❌ ERROR:", str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
+# =========================
+# 📊 STATUS
+# =========================
 @router.get("/status")
-def status(authorization: str = Header(...)):
+def status(user: dict = Depends(get_current_user)):   # ✅ CORRECT
     try:
-        token = authorization.split(" ")[1]
-    except:
-        return {"error": "Invalid token"}
+        return get_today_status(user["id"])
 
-    user = verify_token(token)
-    return get_today_status(user["id"])
+    except Exception as e:
+        print("❌ ERROR:", str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
+    

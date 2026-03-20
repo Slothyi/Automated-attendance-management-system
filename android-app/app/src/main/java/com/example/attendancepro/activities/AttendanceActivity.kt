@@ -223,6 +223,12 @@ class AttendanceActivity : AppCompatActivity() {
                 ) {
                     setLoading(false)
 
+                    if (!response.isSuccessful) {
+                        statusText.text = "Server Error ❌"
+                        Toast.makeText(this@AttendanceActivity, "HTTP ${response.code()}", Toast.LENGTH_LONG).show()
+                        return
+                    }
+
                     val res = response.body()
                     Log.d("API_RESPONSE", res.toString())
 
@@ -251,7 +257,7 @@ class AttendanceActivity : AppCompatActivity() {
                             Toast.LENGTH_LONG
                         ).show()
 
-                        if (errorMsg == "Already marked") {
+                        if (errorMsg.contains("Already")) {
                             captureBtn.text = "Already Marked"
                             captureBtn.isEnabled = false
                         }
@@ -261,11 +267,13 @@ class AttendanceActivity : AppCompatActivity() {
                 override fun onFailure(call: Call<AttendanceResponse>, t: Throwable) {
                     setLoading(false)
 
+                    Log.e("API_ERROR", "Error: ${t.message}", t)
+
                     statusText.text = "Error ❌"
 
                     Toast.makeText(
                         this@AttendanceActivity,
-                        "Error: ${t.message}",
+                        "Network Error: ${t.localizedMessage}",
                         Toast.LENGTH_LONG
                     ).show()
                 }

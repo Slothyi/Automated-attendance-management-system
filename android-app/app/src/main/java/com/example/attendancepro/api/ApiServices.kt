@@ -10,15 +10,12 @@ import retrofit2.http.*
 
 interface ApiService {
 
-    // ✅ LOGIN
     @POST("api/auth/login")
     fun login(@Body request: LoginRequest): Call<LoginResponse>
 
-    // ✅ GET STATUS
     @GET("api/attendance/status")
     fun getStatus(): Call<AttendanceResponse>
 
-    // ✅ MARK ATTENDANCE
     @Multipart
     @POST("api/attendance/mark")
     fun markAttendance(
@@ -27,7 +24,6 @@ interface ApiService {
         @Part("lng") lng: RequestBody
     ): Call<AttendanceResponse>
 
-    // ✅ UNMARK (FIXED — NO TOKEN FIELD)
     @POST("api/attendance/unmark")
     fun unmarkAttendance(): Call<AttendanceResponse>
 }

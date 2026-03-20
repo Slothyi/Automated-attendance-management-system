@@ -17,28 +17,34 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_login)
 
         val session = SessionManager(this)
-
-        // ✅ AUTO LOGIN → GO TO DASHBOARD
-        if (!session.getToken().isNullOrEmpty()) {
-            startActivity(Intent(this, DashboardActivity::class.java))
-            finish()
-            return
-        }
-
-        setContentView(R.layout.activity_login)
 
         val email = findViewById<EditText>(R.id.email)
         val password = findViewById<EditText>(R.id.password)
         val loginBtn = findViewById<Button>(R.id.loginBtn)
 
+        // ✅ CHANGE BUTTON TEXT IF TOKEN EXISTS
+        if (!session.getToken().isNullOrEmpty()) {
+            loginBtn.text = "Continue"
+        }
+
         loginBtn.setOnClickListener {
 
+            val token = session.getToken()
+
+            // ✅ IF TOKEN EXISTS → SKIP LOGIN API
+            if (!token.isNullOrEmpty()) {
+                startActivity(Intent(this, DashboardActivity::class.java))
+                finish()
+                return@setOnClickListener
+            }
+
+            // 🔐 NORMAL LOGIN FLOW
             val emailText = email.text.toString().trim()
             val passwordText = password.text.toString().trim()
 
-            // ✅ VALIDATION
             if (emailText.isEmpty()) {
                 email.error = "Enter email"
                 return@setOnClickListener
@@ -51,7 +57,6 @@ class LoginActivity : AppCompatActivity() {
 
             val request = LoginRequest(emailText, passwordText)
 
-            // ✅ LOADING STATE
             loginBtn.isEnabled = false
             loginBtn.text = "Logging in..."
 
@@ -67,11 +72,11 @@ class LoginActivity : AppCompatActivity() {
 
                         if (response.isSuccessful) {
 
-                            val token = response.body()?.token
+                            val newToken = response.body()?.token
 
-                            if (!token.isNullOrEmpty()) {
+                            if (!newToken.isNullOrEmpty()) {
 
-                                session.saveToken(token)
+                                session.saveToken(newToken)
 
                                 Toast.makeText(
                                     this@LoginActivity,
@@ -79,7 +84,6 @@ class LoginActivity : AppCompatActivity() {
                                     Toast.LENGTH_SHORT
                                 ).show()
 
-                                // ✅ GO TO DASHBOARD
                                 startActivity(
                                     Intent(
                                         this@LoginActivity,
