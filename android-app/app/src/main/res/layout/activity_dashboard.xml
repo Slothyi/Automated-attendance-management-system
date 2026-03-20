@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F7FA">
+
+    <!-- 🔷 Title -->
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Attendance Dashboard"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#222222"/>
+
+    <!-- 🔷 Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="6dp">
+
+        <LinearLayout
+            android:padding="20dp"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Today Status -->
+            <TextView
+                android:id="@+id/todayStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Today: Not Marked ❌"
+                android:textSize="16sp"
+                android:textColor="#333333"/>
+
+            <!-- Attendance % -->
+            <TextView
+                android:id="@+id/totalAttendance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total Attendance: -- %"
+                android:textSize="15sp"
+                android:textColor="#666666"
+                android:layout_marginTop="10dp"/>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 🔷 Mark Attendance Button -->
+    <Button
+        android:id="@+id/markBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mark Attendance"
+        android:textAllCaps="false"
+        android:layout_marginTop="30dp"
+        android:padding="12dp"
+        android:backgroundTint="#4CAF50"
+        android:textColor="#FFFFFF"/>
+
+    <!-- 🔷 Hidden message -->
+    <TextView
+        android:id="@+id/locationWarning"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="You are outside college area ❌"
+        android:textColor="#D32F2F"
+        android:layout_marginTop="10dp"
+        android:visibility="gone"/>
+
+</LinearLayout>
