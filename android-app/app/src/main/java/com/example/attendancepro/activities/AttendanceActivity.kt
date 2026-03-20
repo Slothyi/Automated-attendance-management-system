@@ -1,6 +1,7 @@
 package com.example.attendancepro.activities
 
 import android.Manifest
+import com.example.attendancepro.models.AttendanceResponse
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -19,7 +20,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
 import com.example.attendancepro.R
 import com.example.attendancepro.api.RetrofitClient
-import com.example.attendancepro.models.AttendanceResponse
 import com.google.android.gms.location.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -242,7 +242,12 @@ class AttendanceActivity : AppCompatActivity() {
                         AlertDialog.Builder(this@AttendanceActivity)
                             .setTitle("Success")
                             .setMessage("You are marked present ✅")
-                            .setPositiveButton("OK", null)
+                            .setPositiveButton("Go to Dashboard") { _, _ ->
+                                val intent = Intent(this@AttendanceActivity, DashboardActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                startActivity(intent)
+                                finish()
+                            }
                             .show()
 
                     } else {

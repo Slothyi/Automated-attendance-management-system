@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.example.attendancepro.R
@@ -47,10 +48,20 @@ class DashboardActivity : AppCompatActivity() {
         markBtn.setOnClickListener {
             startActivity(Intent(this, AttendanceActivity::class.java))
         }
+
+        // ============================
+        // 🔙 MODERN BACK HANDLER
+        // ============================
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                startActivity(Intent(this@DashboardActivity, LoginActivity::class.java))
+                finish()
+            }
+        })
     }
 
     // ============================
-    // 📍 LOCATION CHECK (IMPORTANT)
+    // 📍 LOCATION CHECK
     // ============================
     private fun checkLocationAndLoad() {
 
@@ -61,37 +72,37 @@ class DashboardActivity : AppCompatActivity() {
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            loadStatus() // fallback
+            loadStatus()
             return
         }
 
         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
 
-            if (location != null) {
+            if (location == null) {
+                Toast.makeText(this, "Unable to detect location", Toast.LENGTH_SHORT).show()
+                loadStatus()
+                return@addOnSuccessListener
+            }
 
-                val distance = calculateDistance(
-                    location.latitude,
-                    location.longitude,
-                    collegeLat,
-                    collegeLng
-                )
+            val distance = calculateDistance(
+                location.latitude,
+                location.longitude,
+                collegeLat,
+                collegeLng
+            )
 
-                if (distance > 0.2) {
-                    // ❌ OUTSIDE CAMPUS → LOGOUT
-                    session.clearToken()
+            if (distance > 0.2) {
+                // ❌ OUTSIDE CAMPUS → LOGOUT
+                session.clearToken()
 
-                    Toast.makeText(
-                        this,
-                        "You left college area. Login again.",
-                        Toast.LENGTH_LONG
-                    ).show()
+                Toast.makeText(
+                    this,
+                    "You left college area. Login again.",
+                    Toast.LENGTH_LONG
+                ).show()
 
-                    startActivity(Intent(this, LoginActivity::class.java))
-                    finish()
-                } else {
-                    loadStatus()
-                }
-
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
             } else {
                 loadStatus()
             }
@@ -99,46 +110,33 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     // ============================
-    // 📊 LOAD STATUS FROM BACKEND
+    // 📊 LOAD STATUS
     // ============================
     private fun loadStatus() {
 
-        RetrofitClient.instance.getStatus()
-            .enqueue(object : Callback<AttendanceResponse> {
+        RetrofitClient.instance.getStatus().enqueue(object : Callback<AttendanceResponse> {
 
-                override fun onResponse(
-                    call: Call<AttendanceResponse>,
-                    response: Response<AttendanceResponse>
-                ) {
-                    val res = response.body()
+            override fun onResponse(
+                call: Call<AttendanceResponse>,
+                response: Response<AttendanceResponse>
+            ) {
+                val status = response.body()?.status
 
-                    if (res?.status == "present") {
-
-                        todayStatus.text = "Today: Present ✅"
-
-                        markBtn.text = "Already Marked"
-                        markBtn.isEnabled = false
-
-                    } else {
-
-                        todayStatus.text = "Today: Not Marked ❌"
-
-                        markBtn.text = "Mark Attendance"
-                        markBtn.isEnabled = true
-                    }
+                if (status == "present") {
+                    todayStatus.text = "Present ✅"
+                    markBtn.isEnabled = false
+                    markBtn.text = "Already Marked"
+                } else {
+                    todayStatus.text = "Absent ❌"
+                    markBtn.isEnabled = true
+                    markBtn.text = "Mark Attendance"
                 }
+            }
 
-                override fun onFailure(call: Call<AttendanceResponse>, t: Throwable) {
-
-                    todayStatus.text = "Error loading status"
-
-                    Toast.makeText(
-                        this@DashboardActivity,
-                        "Error: ${t.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            })
+            override fun onFailure(call: Call<AttendanceResponse>, t: Throwable) {
+                todayStatus.text = "Error loading status"
+            }
+        })
     }
 
     // ============================

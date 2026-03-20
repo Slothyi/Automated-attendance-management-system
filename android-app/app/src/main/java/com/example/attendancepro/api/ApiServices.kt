@@ -1,8 +1,8 @@
 package com.example.attendancepro.api
 
+import com.example.attendancepro.models.AttendanceResponse
 import com.example.attendancepro.models.LoginRequest
 import com.example.attendancepro.models.LoginResponse
-import com.example.attendancepro.models.AttendanceResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
@@ -24,6 +24,14 @@ interface ApiService {
         @Part("lng") lng: RequestBody
     ): Call<AttendanceResponse>
 
+    @POST("api/auth/register")
+    fun register(
+        @Part("name") name: RequestBody,
+        @Part("roll") roll: RequestBody,
+        @Part("email") email: RequestBody,
+        @Part("password") password: RequestBody,
+        @Part file: MultipartBody.Part
+    ): Call<Map<String, String>>
     @POST("api/attendance/unmark")
     fun unmarkAttendance(): Call<AttendanceResponse>
 }

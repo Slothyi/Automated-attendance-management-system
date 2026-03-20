@@ -2,6 +2,7 @@ package com.example.attendancepro.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.attendancepro.R
@@ -24,24 +25,41 @@ class LoginActivity : AppCompatActivity() {
         val email = findViewById<EditText>(R.id.email)
         val password = findViewById<EditText>(R.id.password)
         val loginBtn = findViewById<Button>(R.id.loginBtn)
+        val registerBtn = findViewById<Button>(R.id.registerBtn)
 
-        // ✅ CHANGE BUTTON TEXT IF TOKEN EXISTS
-        if (!session.getToken().isNullOrEmpty()) {
+        val token = session.getToken()
+
+        // =========================
+        // 🔐 TOKEN EXISTS → CONTINUE MODE
+        // =========================
+        if (!token.isNullOrEmpty()) {
             loginBtn.text = "Continue"
+            registerBtn.visibility = View.VISIBLE
+        } else {
+            loginBtn.text = "Login"
+            registerBtn.visibility = View.VISIBLE
         }
 
+        // =========================
+        // 🔘 REGISTER BUTTON
+        // =========================
+        registerBtn.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
+        }
+
+        // =========================
+        // 🔘 LOGIN BUTTON
+        // =========================
         loginBtn.setOnClickListener {
 
-            val token = session.getToken()
+            val existingToken = session.getToken()
 
             // ✅ IF TOKEN EXISTS → SKIP LOGIN API
-            if (!token.isNullOrEmpty()) {
+            if (!existingToken.isNullOrEmpty()) {
                 startActivity(Intent(this, DashboardActivity::class.java))
-                finish()
                 return@setOnClickListener
             }
 
-            // 🔐 NORMAL LOGIN FLOW
             val emailText = email.text.toString().trim()
             val passwordText = password.text.toString().trim()
 
@@ -70,42 +88,33 @@ class LoginActivity : AppCompatActivity() {
                         loginBtn.isEnabled = true
                         loginBtn.text = "Login"
 
-                        if (response.isSuccessful) {
+                        if (response.isSuccessful && response.body() != null) {
 
-                            val newToken = response.body()?.token
+                            val res = response.body()!!
 
-                            if (!newToken.isNullOrEmpty()) {
+                            if (res.token != null) {
+                                session.saveToken(res.token)
 
-                                session.saveToken(newToken)
-
-                                Toast.makeText(
-                                    this@LoginActivity,
-                                    "Login Success",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-
-                                startActivity(
-                                    Intent(
-                                        this@LoginActivity,
-                                        DashboardActivity::class.java
-                                    )
-                                )
+                                startActivity(Intent(this@LoginActivity, DashboardActivity::class.java))
                                 finish()
 
                             } else {
-                                Toast.makeText(
-                                    this@LoginActivity,
-                                    "Invalid server response",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                                val errorMsg = res.error ?: "Login failed"
 
-                        } else {
-                            Toast.makeText(
-                                this@LoginActivity,
-                                "Invalid credentials",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                                if (errorMsg == "User not found") {
+                                    Toast.makeText(
+                                        this@LoginActivity,
+                                        "New user? Please register first",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                } else {
+                                    Toast.makeText(
+                                        this@LoginActivity,
+                                        errorMsg,
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            }
                         }
                     }
 
