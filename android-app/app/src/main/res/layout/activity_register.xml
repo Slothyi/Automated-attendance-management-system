@@ -1,75 +1,167 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_register">
 
-    <LinearLayout
+    <!-- ✨ PARTICLES -->
+    <FrameLayout
+        android:id="@+id/particleContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:layout_height="match_parent"/>
 
-        <!-- Name -->
-        <EditText
-            android:id="@+id/name"
+    <!-- MAIN CONTENT -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:overScrollMode="never"
+        android:clipToPadding="false">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Name"
-            android:layout_marginTop="10dp"/>
+            android:orientation="vertical"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:paddingBottom="24dp"
+            android:paddingTop="100dp">  <!-- 🔥 space for status bar -->
 
-        <!-- Roll -->
-        <EditText
-            android:id="@+id/roll"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Roll Number"
-            android:layout_marginTop="10dp"/>
+            <!-- 🔥 TITLE -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Create Account"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:layout_marginBottom="24dp"/>
 
-        <!-- Email -->
-        <EditText
-            android:id="@+id/email"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Email"
-            android:inputType="textEmailAddress"
-            android:layout_marginTop="10dp"/>
+            <!-- 💎 CARD -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="32dp"
+                app:cardElevation="16dp"
+                android:backgroundTint="#E6FFFFFF"
+                app:strokeWidth="1dp"
+                app:strokeColor="#20FFFFFF">
 
-        <!-- Password -->
-        <EditText
-            android:id="@+id/password"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Password"
-            android:inputType="textPassword"
-            android:layout_marginTop="10dp"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-        <!-- 📸 Preview Image -->
-        <ImageView
-            android:id="@+id/previewImage"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:layout_gravity="center"
-            android:layout_marginTop="20dp"
-            android:scaleType="centerCrop"
-            android:background="@android:color/darker_gray"/>
+                    <!-- NAME -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/RoundedTextInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Full Name">
 
-        <!-- 📸 Capture Button -->
-        <Button
-            android:id="@+id/captureBtn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Capture Selfie"
-            android:layout_marginTop="10dp"/>
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="14dp"
+                            android:textColor="#212121"/>
+                    </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- 🚀 Register Button -->
-        <Button
-            android:id="@+id/registerBtn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Register"
-            android:layout_marginTop="20dp"/>
+                    <!-- ROLL -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/RoundedTextInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Roll Number"
+                        android:layout_marginTop="14dp">
 
-    </LinearLayout>
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/roll"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="14dp"
+                            android:textColor="#212121"/>
+                    </com.google.android.material.textfield.TextInputLayout>
 
-</ScrollView>
+                    <!-- EMAIL -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/RoundedTextInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Email"
+                        android:layout_marginTop="14dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/email"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="14dp"
+                            android:inputType="textEmailAddress"
+                            android:textColor="#212121"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- PASSWORD -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/RoundedTextInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Password"
+                        android:layout_marginTop="14dp"
+                        app:endIconMode="password_toggle">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/password"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="14dp"
+                            android:inputType="textPassword"
+                            android:textColor="#212121"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- SELFIE -->
+                    <ImageView
+                        android:id="@+id/selfiePreview"
+                        android:layout_width="150dp"
+                        android:layout_height="150dp"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="22dp"
+                        android:scaleType="centerCrop"
+                        android:background="@drawable/resgister_circle_bg"/>
+
+                    <!-- CAPTURE -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/captureBtn"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:text="Capture Selfie"
+                        android:textAllCaps="false"
+                        android:layout_marginTop="16dp"
+                        app:cornerRadius="28dp"
+                        android:backgroundTint="#66BB6A"
+                        android:textColor="#FFFFFF"/>
+
+                    <!-- REGISTER -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/registerBtn"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:text="Register"
+                        android:textAllCaps="false"
+                        android:layout_marginTop="14dp"
+                        app:cornerRadius="28dp"
+                        android:backgroundTint="#1976D2"
+                        android:textColor="#FFFFFF"
+                        android:elevation="6dp"/>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</FrameLayout>

@@ -3,7 +3,7 @@ from app.utils.distance import calculate_distance
 from app.utils.time_check import can_mark_attendance
 from app.utils.face_recognition_utils import get_face_encoding, compare_faces
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from bson import ObjectId
 import numpy as np
 import cv2
@@ -35,7 +35,7 @@ def mark_attendance(user_id, lat, lng, file):
         if not can_mark_attendance(user.get("last_attendance")):
             return {"error": "Wait 19 hours before marking again"}
 
-        # 🔁 OPTIONAL: prevent rapid duplicate clicks
+        # 🔁 PREVENT RAPID SPAM (1 min)
         recent = attendance_collection.find_one(
             {"user_id": user_id},
             sort=[("timestamp", -1)]
@@ -48,7 +48,7 @@ def mark_attendance(user_id, lat, lng, file):
                 if last_time.tzinfo is None:
                     last_time = last_time.replace(tzinfo=timezone.utc)
 
-                if (datetime.now(timezone.utc) - last_time).seconds < 60:
+                if (datetime.now(timezone.utc) - last_time).total_seconds() < 60:
                     return {"error": "Please wait before retrying"}
 
         # 📸 READ FILE
@@ -57,6 +57,8 @@ def mark_attendance(user_id, lat, lng, file):
         if not file_bytes or len(file_bytes) == 0:
             return {"error": "Empty image received"}
 
+        print("📸 FILE SIZE:", len(file_bytes))  # ✅ DEBUG
+
         # 📂 SAVE FILE
         os.makedirs("uploads", exist_ok=True)
         file_path = f"uploads/selfie_{datetime.now().timestamp()}.jpg"
@@ -64,19 +66,18 @@ def mark_attendance(user_id, lat, lng, file):
         with open(file_path, "wb") as f:
             f.write(file_bytes)
 
+        print("📸 FILE SAVED AT:", file_path)  # ✅ DEBUG
+
         # 🖼️ VERIFY IMAGE
-        try:
-            image = cv2.imread(file_path)
-            if image is None:
-                return {"error": "Corrupted image"}
-        except Exception:
-            return {"error": "Image processing failed"}
+        image = cv2.imread(file_path)
+        if image is None:
+            return {"error": "Corrupted image"}
 
         # 🤖 FACE ENCODING
         unknown_encoding = get_face_encoding(file_path)
 
         if unknown_encoding is None:
-            return {"error": "No face detected"}
+            return {"error": "No valid face detected"}
 
         # 🧠 KNOWN FACE
         known_encoding = np.array(user["face_encoding"])
@@ -101,7 +102,7 @@ def mark_attendance(user_id, lat, lng, file):
 
         attendance_collection.insert_one(attendance)
 
-        # 🔄 UPDATE USER (for 19-hour rule)
+        # 🔄 UPDATE USER
         users_collection.update_one(
             {"_id": ObjectId(user_id)},
             {"$set": {"last_attendance": now}}
@@ -115,14 +116,12 @@ def mark_attendance(user_id, lat, lng, file):
     except Exception as e:
         print("❌ ERROR:", str(e))
         return {"error": "Internal server error"}
-
-
+    
 # =========================
 # ❌ UNMARK ATTENDANCE
 # =========================
 def unmark_attendance(user_id):
     try:
-        # 🔥 delete latest attendance
         result = attendance_collection.find_one_and_delete(
             {"user_id": user_id},
             sort=[("timestamp", -1)]
@@ -131,7 +130,7 @@ def unmark_attendance(user_id):
         if not result:
             return {"error": "No attendance found to delete"}
 
-        # 🔥 reset cooldown
+        # 🔥 RESET COOLDOWN
         users_collection.update_one(
             {"_id": ObjectId(user_id)},
             {"$set": {"last_attendance": None}}
@@ -158,6 +157,35 @@ def get_today_status(user_id):
             return {"status": "present"}
         else:
             return {"status": "absent"}
+
+    except Exception as e:
+        print("❌ ERROR:", str(e))
+        return {"error": "Internal server error"}
+    
+# =========================
+# 📊 WEEKLY HISTORY
+# =========================
+def get_weekly_history(user_id):
+    try:
+        now = datetime.now(timezone.utc)
+
+        # 🔥 last 7 days
+        week_ago = now - timedelta(days=7)
+
+        records = attendance_collection.find({
+            "user_id": user_id,
+            "timestamp": {"$gte": week_ago}
+        }).sort("timestamp", -1)
+
+        history = []
+
+        for r in records:
+            history.append({
+                "date": r["timestamp"].strftime("%Y-%m-%d"),
+                "status": r["status"]
+            })
+
+        return {"history": history}
 
     except Exception as e:
         print("❌ ERROR:", str(e))

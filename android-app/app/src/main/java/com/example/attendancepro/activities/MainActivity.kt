@@ -27,6 +27,8 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+
+
         setContentView(R.layout.activity_main)
 
         val statusText = findViewById<TextView>(R.id.statusText)

@@ -1,9 +1,50 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
+    <!-- ========================= -->
+    <!-- 🔷 BASE THEME -->
+    <!-- ========================= -->
     <style name="Base.Theme.AttendancePRO" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+        <!-- ✅ FIX STATUS BAR (GLOBAL) -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+
     </style>
 
+    <!-- ========================= -->
+    <!-- 🎯 MAIN APP THEME -->
+    <!-- ========================= -->
     <style name="Theme.AttendancePRO" parent="Base.Theme.AttendancePRO" />
+
+    <!-- ========================= -->
+    <!-- 🚀 SPLASH THEME (IMPORTANT) -->
+    <!-- ========================= -->
+    <style name="Theme.AttendancePRO.Splash" parent="Theme.Material3.DayNight.NoActionBar">
+
+        <!-- 🔥 Remove pink -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+
+        <!-- White icons -->
+        <item name="android:windowLightStatusBar">false</item>
+
+        <!-- Prevent flicker -->
+        <item name="android:windowBackground">@drawable/bg_login</item>
+
+    </style>
+
+    <!-- ========================= -->
+    <!-- ✏️ INPUT STYLE -->
+    <!-- ========================= -->
+    <style name="RoundedTextInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+
+        <item name="boxCornerRadiusTopStart">20dp</item>
+        <item name="boxCornerRadiusTopEnd">20dp</item>
+        <item name="boxCornerRadiusBottomStart">20dp</item>
+        <item name="boxCornerRadiusBottomEnd">20dp</item>
+
+        <item name="boxStrokeWidth">2dp</item>
+        <item name="boxStrokeColor">#2196F3</item>
+
+    </style>
+
 </resources>

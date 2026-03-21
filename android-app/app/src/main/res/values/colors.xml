@@ -2,4 +2,14 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="green">#4CAF50</color>
+    <color name="red">#D32F2F</color>
+    <color name="grad1">#667eea</color>
+    <color name="grad2">#764ba2</color>
+    <color name="grad3">#4facfe</color>
+    <color name="grad4">#0F2027</color>
+    <color name="grad5">#203A43</color>
+    <color name="grad6">#2C5364</color>
+    <!-- Status bar color (top gradient match) -->
+    <color name="status_bar_color">#1d5a87</color>
 </resources>

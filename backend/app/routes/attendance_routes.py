@@ -3,7 +3,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from app.controllers.attendance_controller import (
     mark_attendance,
     unmark_attendance,
-    get_today_status
+    get_today_status,
+    get_weekly_history
 )
 
 from app.utils.jwt_handler import verify_token
@@ -70,3 +71,10 @@ def status(user: dict = Depends(get_current_user)):   # ✅ CORRECT
         print("❌ ERROR:", str(e))
         raise HTTPException(status_code=500, detail="Internal server error")
     
+
+# =========================
+# 📊 WEEKLY HISTORY
+# =========================
+@router.get("/history")
+def history(user: dict = Depends(get_current_user)):
+    return get_weekly_history(user["id"])

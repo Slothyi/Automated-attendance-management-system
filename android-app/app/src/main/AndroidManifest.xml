@@ -25,10 +25,11 @@
         android:theme="@style/Theme.AttendancePRO"
         android:usesCleartextTraffic="true">
 
-        <!-- 🔐 LOGIN (ENTRY POINT) -->
+        <!-- 🚀 SPLASH (FIXED) -->
         <activity
-            android:name=".activities.LoginActivity"
-            android:exported="true">
+            android:name=".activities.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AttendancePRO.Splash">  <!-- ✅ IMPORTANT -->
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -36,6 +37,11 @@
             </intent-filter>
 
         </activity>
+
+        <!-- 🔐 LOGIN -->
+        <activity
+            android:name=".activities.LoginActivity"
+            android:exported="true"/>
 
         <!-- 📊 DASHBOARD -->
         <activity
@@ -57,7 +63,9 @@
             android:name=".activities.MainActivity"
             android:exported="false"/>
 
-        <!-- 🔥 FILE PROVIDER (CRITICAL FOR CAMERA) -->
+        <activity android:name=".activities.ProfileActivity" />
+
+        <!-- 🔥 FILE PROVIDER -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

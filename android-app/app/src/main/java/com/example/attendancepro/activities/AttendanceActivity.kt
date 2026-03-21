@@ -91,6 +91,25 @@ class AttendanceActivity : AppCompatActivity() {
         }
     }
 
+    // ✅ FIX ADDED HERE
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == 100 &&
+            grantResults.isNotEmpty() &&
+            grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+
+            openCamera()
+        } else {
+            setLoading(false)
+            Toast.makeText(this, "Permissions required", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     // 📸 Open Camera
     private fun openCamera() {
 

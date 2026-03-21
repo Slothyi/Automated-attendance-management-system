@@ -22,11 +22,19 @@ object RetrofitClient {
         .writeTimeout(60, TimeUnit.SECONDS)
         .addInterceptor(logging)
         .addInterceptor { chain ->
-            val requestBuilder = chain.request().newBuilder()
+
+            val originalRequest = chain.request()
+            val requestBuilder = originalRequest.newBuilder()
+
+            val url = originalRequest.url.toString()
 
             val token = SessionManager(App.context).getToken()
 
-            if (!token.isNullOrEmpty()) {
+            // 🚫 Don't attach token for login/register
+            if (!token.isNullOrEmpty() &&
+                !url.contains("auth/login") &&
+                !url.contains("auth/register")
+            ) {
                 requestBuilder.addHeader("Authorization", "Bearer $token")
             }
 
