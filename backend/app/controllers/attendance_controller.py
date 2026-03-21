@@ -1,6 +1,5 @@
 from app.config.db import attendance_collection, users_collection
 from app.utils.distance import calculate_distance
-from app.utils.time_check import can_mark_attendance
 from app.utils.face_recognition_utils import get_face_encoding, compare_faces
 
 from datetime import datetime, timezone, timedelta
@@ -12,6 +11,22 @@ import os
 
 COLLEGE_LAT = 23.526515
 COLLEGE_LNG = 87.742507
+
+
+# =========================
+# ⏱️ 1 HOUR RULE (TESTING)
+# =========================
+def can_mark_attendance(last_attendance):
+
+    if not last_attendance:
+        return True
+
+    if last_attendance.tzinfo is None:
+        last_attendance = last_attendance.replace(tzinfo=timezone.utc)
+
+    now = datetime.now(timezone.utc)
+
+    return (now - last_attendance) >= timedelta(hours=1)
 
 
 # =========================
@@ -31,9 +46,20 @@ def mark_attendance(user_id, lat, lng, file):
         if not user:
             return {"error": "User not found"}
 
-        # ⏳ 19-HOUR RULE
-        if not can_mark_attendance(user.get("last_attendance")):
-            return {"error": "Wait 19 hours before marking again"}
+        # ⏳ 1 HOUR RULE
+        last = user.get("last_attendance")
+
+        if not can_mark_attendance(last):
+
+            now = datetime.now(timezone.utc)
+
+            if last and last.tzinfo is None:
+                last = last.replace(tzinfo=timezone.utc)
+
+            remaining = timedelta(hours=1) - (now - last)
+            minutes = int(remaining.total_seconds() / 60)
+
+            return {"error": f"Wait {minutes} minutes before marking again"}
 
         # 🔁 PREVENT RAPID SPAM (1 min)
         recent = attendance_collection.find_one(
@@ -57,7 +83,7 @@ def mark_attendance(user_id, lat, lng, file):
         if not file_bytes or len(file_bytes) == 0:
             return {"error": "Empty image received"}
 
-        print("📸 FILE SIZE:", len(file_bytes))  # ✅ DEBUG
+        print("📸 FILE SIZE:", len(file_bytes))
 
         # 📂 SAVE FILE
         os.makedirs("uploads", exist_ok=True)
@@ -66,7 +92,7 @@ def mark_attendance(user_id, lat, lng, file):
         with open(file_path, "wb") as f:
             f.write(file_bytes)
 
-        print("📸 FILE SAVED AT:", file_path)  # ✅ DEBUG
+        print("📸 FILE SAVED AT:", file_path)
 
         # 🖼️ VERIFY IMAGE
         image = cv2.imread(file_path)
@@ -116,7 +142,8 @@ def mark_attendance(user_id, lat, lng, file):
     except Exception as e:
         print("❌ ERROR:", str(e))
         return {"error": "Internal server error"}
-    
+
+
 # =========================
 # ❌ UNMARK ATTENDANCE
 # =========================
@@ -148,20 +175,36 @@ def unmark_attendance(user_id):
 # =========================
 def get_today_status(user_id):
     try:
-        recent = attendance_collection.find_one(
-            {"user_id": user_id},
-            sort=[("timestamp", -1)]
-        )
+        user = users_collection.find_one({"_id": ObjectId(user_id)})
 
-        if recent:
-            return {"status": "present"}
-        else:
+        if not user:
+            return {"error": "User not found"}
+
+        last = user.get("last_attendance")
+
+        if not last:
             return {"status": "absent"}
 
+        now = datetime.now(timezone.utc)
+
+        if last.tzinfo is None:
+            last = last.replace(tzinfo=timezone.utc)
+
+        diff = now - last
+
+        if diff < timedelta(hours=1):
+            remaining = timedelta(hours=1) - diff
+            minutes = int(remaining.total_seconds() / 60)
+
+            return {
+                "status": "cooldown",
+                "remaining_minutes": minutes
+            }
+
+        return {"status": "ready"}
+
     except Exception as e:
-        print("❌ ERROR:", str(e))
         return {"error": "Internal server error"}
-    
 # =========================
 # 📊 WEEKLY HISTORY
 # =========================
@@ -169,7 +212,6 @@ def get_weekly_history(user_id):
     try:
         now = datetime.now(timezone.utc)
 
-        # 🔥 last 7 days
         week_ago = now - timedelta(days=7)
 
         records = attendance_collection.find({

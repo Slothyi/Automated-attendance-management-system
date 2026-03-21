@@ -1,261 +1,306 @@
 package com.example.attendancepro.activities
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
+import android.net.Uri
 import android.os.Bundle
-import android.widget.Button
+import android.os.Handler
+import android.os.Looper
+import android.view.View
+import android.provider.MediaStore
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.app.ActivityCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.GravityCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.example.attendancepro.R
 import com.example.attendancepro.api.RetrofitClient
-import com.example.attendancepro.models.AttendanceResponse
 import com.example.attendancepro.models.AttendanceHistoryResponse
+import com.example.attendancepro.models.AttendanceResponse
 import com.example.attendancepro.utils.SessionManager
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.button.MaterialButton
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
 class DashboardActivity : AppCompatActivity() {
 
-    private lateinit var drawerLayout: DrawerLayout
-    private lateinit var profileBtn: Button
-    private lateinit var toolbar: MaterialToolbar
-
-    private lateinit var welcomeText: TextView
+    private lateinit var markBtn: MaterialButton
+    private lateinit var nextTime: TextView
     private lateinit var historyText: TextView
-    private lateinit var todayStatus: TextView
     private lateinit var totalAttendance: TextView
-    private lateinit var markBtn: Button
 
-    private lateinit var session: SessionManager
+    private lateinit var imageFile: File
+    private lateinit var imageUri: Uri
 
-    private val collegeLat = 23.526515
-    private val collegeLng = 87.742507
+    private val CAMERA_REQUEST = 1001
+
+    private var remainingSeconds = 0
+    private val handler = Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // =========================
+        // 🔥 PERFECT STATUS BAR FIX (LIKE LOGIN)
+        // =========================
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+
+        window.decorView.systemUiVisibility =
+            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+
+        WindowInsetsControllerCompat(window, window.decorView)
+            .isAppearanceLightStatusBars = false
+        // =========================
+
         setContentView(R.layout.activity_dashboard)
 
-        session = SessionManager(this)
-
-        drawerLayout = findViewById(R.id.drawerLayout)
-        toolbar = findViewById(R.id.toolbar)
-        profileBtn = findViewById(R.id.profileBtn)
+        // =========================
+        // 🔥 DRAWER SETUP
+        // =========================
+        val drawerLayout = findViewById<DrawerLayout>(R.id.drawerLayout)
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
 
         setSupportActionBar(toolbar)
 
         val toggle = ActionBarDrawerToggle(
-            this, drawerLayout, toolbar, R.string.open, R.string.close
+            this,
+            drawerLayout,
+            toolbar,
+            R.string.app_name,
+            R.string.app_name
         )
+
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
-        profileBtn.setOnClickListener {
-            startActivity(Intent(this, ProfileActivity::class.java))
-        }
-
-        welcomeText = findViewById(R.id.welcomeText)
-        historyText = findViewById(R.id.historyText)
-        todayStatus = findViewById(R.id.todayStatus)
-        totalAttendance = findViewById(R.id.totalAttendance)
-        markBtn = findViewById(R.id.markBtn)
-
-        val name = session.getName()
-        welcomeText.text = "Welcome ${name ?: "Student"} 👋"
-
-        markBtn.setOnClickListener {
-            startActivity(Intent(this, AttendanceActivity::class.java))
-        }
-
-        // BACK
+        // =========================
+        // 🔥 MODERN BACK HANDLER
+        // =========================
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                     drawerLayout.closeDrawer(GravityCompat.START)
                 } else {
-                    startActivity(Intent(this@DashboardActivity, LoginActivity::class.java))
                     finish()
                 }
             }
         })
+
+        val session = SessionManager(this)
+
+        val userName = findViewById<TextView>(R.id.userName)
+        val profileName = findViewById<TextView>(R.id.profileName)
+
+        markBtn = findViewById(R.id.markBtn)
+        nextTime = findViewById(R.id.nextTime)
+        historyText = findViewById(R.id.historyText)
+        totalAttendance = findViewById(R.id.totalAttendance)
+
+        userName.text = "Welcome ${session.getName()} 👋"
+        profileName.text = session.getName()
+
+        markBtn.setOnClickListener { openCamera() }
+
+        loadHistory()
+        checkCooldownOnStart()
     }
 
-    // 🔥 ALWAYS REFRESH WHEN SCREEN OPENS
-    override fun onResume() {
-        super.onResume()
-        checkLocationAndLoad()
+    // =========================
+    // CAMERA
+    // =========================
+    private fun openCamera() {
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+
+        imageFile = createImageFile()
+
+        imageUri = FileProvider.getUriForFile(
+            this,
+            "${packageName}.provider",
+            imageFile
+        )
+
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+        startActivityForResult(intent, CAMERA_REQUEST)
     }
 
-    // 📍 LOCATION CHECK
-    private fun checkLocationAndLoad() {
+    private fun createImageFile(): File {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir = getExternalFilesDir("Pictures")
+        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
+            getLocationAndMark()
+        }
+    }
+
+    // =========================
+    // LOCATION + API
+    // =========================
+    private fun getLocationAndMark() {
 
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
+                this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            loadData()
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                101
+            )
             return
         }
 
-        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+        markBtn.text = "Processing..."
+        markBtn.isEnabled = false
 
-            if (location == null) {
-                loadData()
-                return@addOnSuccessListener
-            }
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
 
-            val distance = calculateDistance(
-                location.latitude,
-                location.longitude,
-                collegeLat,
-                collegeLng
-            )
-
-            if (distance > 0.2) {
-                session.clearSession() // ✅ FIXED
-
-                Toast.makeText(
-                    this,
-                    "You left college area. Login again.",
-                    Toast.LENGTH_LONG
-                ).show()
-
-                startActivity(Intent(this, LoginActivity::class.java))
-                finish()
+            if (location != null) {
+                val lat = location.latitude.toString().toRequestBody()
+                val lng = location.longitude.toString().toRequestBody()
+                callMarkAPI(lat, lng)
             } else {
-                loadData()
+                Toast.makeText(this, "Location error", Toast.LENGTH_SHORT).show()
+                resetButton()
             }
         }
     }
 
-    private fun loadData() {
-        loadStatus()
-        loadHistory()
-    }
+    private fun callMarkAPI(lat: RequestBody, lng: RequestBody) {
 
-    // 🔥 STATUS (FIXED)
-    private fun loadStatus() {
+        val filePart = MultipartBody.Part.createFormData(
+            "file",
+            imageFile.name,
+            imageFile.asRequestBody("image/*".toMediaTypeOrNull())
+        )
 
-        todayStatus.text = "Checking..."
-
-        RetrofitClient.instance.getStatus()
+        RetrofitClient.instance.markAttendance(filePart, lat, lng)
             .enqueue(object : Callback<AttendanceResponse> {
 
-                override fun onResponse(
-                    call: Call<AttendanceResponse>,
-                    response: Response<AttendanceResponse>
-                ) {
+                override fun onResponse(call: Call<AttendanceResponse>, response: Response<AttendanceResponse>) {
 
-                    if (!response.isSuccessful || response.body() == null) {
-                        todayStatus.text = "Error ❌"
-                        markBtn.isEnabled = true
-                        markBtn.text = "Mark Attendance"
-                        return
-                    }
+                    val res = response.body()
 
-                    val res = response.body()!!
-
-                    if (res.status == "present") {
-                        todayStatus.text = "Present ✅"
-                        todayStatus.setTextColor(getColor(R.color.green))
-
-                        markBtn.isEnabled = false
+                    if (res?.status == "present") {
                         markBtn.text = "Already Marked"
+                        markBtn.isEnabled = false
+                        startTimer(3600)
+                        loadHistory()
+                    } else if (res?.error == "cooldown") {
+                        val minutes = res.remaining_minutes ?: 0
+                        startTimer(minutes * 60)
                     } else {
-                        todayStatus.text = "Absent ❌"
-                        todayStatus.setTextColor(getColor(R.color.red))
-
-                        markBtn.isEnabled = true
-                        markBtn.text = "Mark Attendance"
+                        Toast.makeText(this@DashboardActivity, res?.error ?: "Error", Toast.LENGTH_LONG).show()
+                        resetButton()
                     }
                 }
 
                 override fun onFailure(call: Call<AttendanceResponse>, t: Throwable) {
-                    todayStatus.text = "Network Error ❌"
-                    markBtn.isEnabled = true
+                    resetButton()
                 }
             })
     }
 
-    // 📅 HISTORY (FIXED)
     private fun loadHistory() {
 
         RetrofitClient.instance.getHistory()
             .enqueue(object : Callback<AttendanceHistoryResponse> {
 
-                override fun onResponse(
-                    call: Call<AttendanceHistoryResponse>,
-                    response: Response<AttendanceHistoryResponse>
-                ) {
+                override fun onResponse(call: Call<AttendanceHistoryResponse>, response: Response<AttendanceHistoryResponse>) {
 
-                    if (!response.isSuccessful || response.body() == null) {
-                        historyText.text = "Error loading history"
-                        return
+                    val res = response.body()
+
+                    if (res != null && res.history.isNotEmpty()) {
+
+                        var present = 0
+                        val builder = StringBuilder()
+
+                        for (i in res.history) {
+                            builder.append("${i.date} → ${i.status}\n")
+                            if (i.status == "present") present++
+                        }
+
+                        historyText.text = builder.toString()
+                        totalAttendance.text = "Total Attendance: ${(present * 100) / res.history.size}%"
                     }
-
-                    val list = response.body()!!.history
-
-                    if (list.isEmpty()) {
-                        historyText.text = "No records"
-                        totalAttendance.text = "0%"
-                        return
-                    }
-
-                    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                    val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())
-
-                    val formatted = list.takeLast(7).joinToString("\n") {
-                        val date = sdf.parse(it.date)
-                        val day = dayFormat.format(date!!)
-                        "$day → ${it.status}"
-                    }
-
-                    historyText.text = formatted
-
-                    val present = list.count { it.status == "present" }
-                    val percentage = (present * 100) / list.size
-
-                    totalAttendance.text = "Total Attendance: $percentage%"
                 }
 
                 override fun onFailure(call: Call<AttendanceHistoryResponse>, t: Throwable) {
-                    historyText.text = "Network error"
+                    historyText.text = "Error"
                 }
             })
     }
 
-    // 📏 DISTANCE
-    private fun calculateDistance(
-        lat1: Double, lon1: Double,
-        lat2: Double, lon2: Double
-    ): Double {
+    private fun startTimer(seconds: Int) {
+        remainingSeconds = seconds
 
-        val R = 6371
-        val dLat = Math.toRadians(lat2 - lat1)
-        val dLon = Math.toRadians(lon2 - lon1)
+        handler.post(object : Runnable {
+            override fun run() {
 
-        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(lat1)) *
-                Math.cos(Math.toRadians(lat2)) *
-                Math.sin(dLon / 2) *
-                Math.sin(dLon / 2)
+                val mins = remainingSeconds / 60
+                nextTime.text = "Next mark in: $mins min"
 
-        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-        return R * c
+                if (remainingSeconds > 0) {
+                    remainingSeconds--
+                    handler.postDelayed(this, 1000)
+                } else {
+                    resetButton()
+                }
+            }
+        })
+    }
+
+    private fun resetButton() {
+        markBtn.text = "Mark Attendance"
+        markBtn.isEnabled = true
+    }
+
+    private fun checkCooldownOnStart() {
+
+        RetrofitClient.instance.getStatus()
+            .enqueue(object : Callback<AttendanceResponse> {
+
+                override fun onResponse(call: Call<AttendanceResponse>, response: Response<AttendanceResponse>) {
+
+                    val res = response.body()
+
+                    if (res?.status == "cooldown") {
+                        val minutes = res.remaining_minutes ?: 0
+                        startTimer(minutes * 60)
+
+                        markBtn.text = "Already Marked"
+                        markBtn.isEnabled = false
+                    }
+                }
+
+                override fun onFailure(call: Call<AttendanceResponse>, t: Throwable) {}
+            })
     }
 }
