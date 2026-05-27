@@ -49,5 +49,6 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.google.android.material:material:1.11.0")
-    implementation("androidx.exifinterface:exifinterface:1.3.6")
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
+    implementation("com.airbnb.android:lottie:6.4.0")
 }

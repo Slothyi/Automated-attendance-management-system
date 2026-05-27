@@ -1,193 +1,195 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-
-    android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    android:layout_height="match_parent">
 
     <!-- ========================= -->
-    <!-- 🔷 MAIN CONTENT -->
+    <!-- 🔷 DRAWER LAYOUT -->
     <!-- ========================= -->
-    <LinearLayout
+    <androidx.drawerlayout.widget.DrawerLayout
+        android:id="@+id/drawerLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="#F5F7FA">
+        android:layout_height="match_parent">
 
-        <!-- HEADER -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:background="@drawable/bg_login"
-            android:orientation="vertical"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="20dp"
-            android:paddingTop="50dp">
-
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                app:title=""
-                app:navigationIconTint="#FFFFFF"/>
-
-            <TextView
-                android:id="@+id/userName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Welcome 👋"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:textColor="#FFFFFF"
-                android:layout_marginTop="16dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Attendance Dashboard"
-                android:textColor="#E3F2FD"/>
-        </LinearLayout>
-
-        <!-- CONTENT -->
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="20dp"
-                android:orientation="vertical">
-
-                <!-- CARD -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="30dp"
-                    android:layout_marginBottom="10dp"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="10dp"
-                    android:backgroundTint="#FFFFFF">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="20dp">
-
-                        <TextView
-                            android:id="@+id/todayStatus"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Checking..."
-                            android:textColor="#4CAF50"
-                            android:textSize="18sp"
-                            android:textStyle="bold"/>
-
-                        <TextView
-                            android:id="@+id/totalAttendance"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Total Attendance: --%"
-                            android:layout_marginTop="6dp"
-                            android:textColor="#555"/>
-
-                        <TextView
-                            android:id="@+id/nextTime"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Next mark in: --"
-                            android:textColor="#888"
-                            android:layout_marginTop="6dp"/>
-
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="This Week"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="#222"
-                    android:layout_marginTop="10dp"/>
-
-                <TextView
-                    android:id="@+id/historyText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Loading..."
-                    android:textColor="#555"
-                    android:layout_marginTop="6dp"/>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/markBtn"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:text="Mark Attendance"
-                    android:layout_marginTop="30dp"
-                    android:textColor="#FFFFFF"
-                    android:backgroundTint="#4CAF50"
-                    app:cornerRadius="28dp"/>
-
-            </LinearLayout>
-
-        </ScrollView>
-
-    </LinearLayout>
-
-    <!-- ========================= -->
-    <!-- 📂 DRAWER -->
-    <!-- ========================= -->
-    <LinearLayout
-        android:layout_width="280dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:orientation="vertical"
-        android:clickable="true"
-        android:focusable="true">
-
-        <!-- PROFILE HEADER -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="160dp"
-            android:background="@drawable/bg_login"
-            android:orientation="vertical"
-            android:gravity="bottom"
-            android:padding="20dp">
-
-            <TextView
-                android:id="@+id/profileName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="User Name"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp"
-                android:textStyle="bold"/>
-
-        </LinearLayout>
-
-        <!-- MENU -->
+        <!-- ========================= -->
+        <!-- 🔷 MAIN CONTENT -->
+        <!-- ========================= -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#FFFFFF"
-            android:padding="20dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="#F5F7FA">
 
-            <Button
-                android:id="@+id/profileBtn"
+            <!-- HEADER -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Profile"/>
+                android:layout_height="250dp"
+                android:background="@drawable/bg_login"
+                android:orientation="vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="20dp"
+                android:paddingTop="60dp">
+
+                <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    app:title=""
+                    app:navigationIconTint="#FFFFFF"/>
+
+                <TextView
+                    android:id="@+id/userName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Welcome 👋"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginTop="16dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Attendance Dashboard"
+                    android:textColor="#E3F2FD"
+                    android:textSize="18sp"/>
+            </LinearLayout>
+
+            <!-- ========================= -->
+            <!-- CONTENT -->
+            <!-- ========================= -->
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:clipChildren="false">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:layout_marginTop="30dp"
+                    android:orientation="vertical">
+
+                    <!-- 🔥 CARD WITH SHADOW -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="12dp"
+                        app:strokeWidth="1dp"
+                        app:strokeColor="#E0E0E0"
+                        android:backgroundTint="#FFFFFF">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="20dp">
+
+                            <TextView
+                                android:id="@+id/totalAttendance"
+                                android:textColor="#000000"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Total Attendance: --%"/>
+
+                            <TextView
+                                android:id="@+id/nextTime"
+                                android:textColor="#000000"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Next mark in: --"
+                                android:layout_marginTop="6dp"/>
+
+                            <TextView
+                                android:id="@+id/historyText"
+                                android:textColor="#000000"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Loading..."
+                                android:layout_marginTop="10dp"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/markBtn"
+                                android:layout_width="match_parent"
+                                android:layout_height="56dp"
+                                android:text="Mark Attendance"
+                                android:layout_marginTop="20dp"
+                                android:textColor="#FFFFFF"
+                                android:backgroundTint="#4CAF50"
+                                app:cornerRadius="28dp"/>
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
+            </ScrollView>
 
         </LinearLayout>
 
-    </LinearLayout>
+        <!-- ========================= -->
+        <!-- 📂 DRAWER -->
+        <!-- ========================= -->
+        <LinearLayout
+            android:layout_width="280dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:clickable="true"
+            android:focusable="true">
 
-</androidx.drawerlayout.widget.DrawerLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:background="@drawable/bg_login"
+                android:gravity="bottom"
+                android:padding="20dp">
+
+                <TextView
+                    android:id="@+id/profileName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="User Name"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="20dp"
+                android:orientation="vertical">
+
+                <Button
+                    android:id="@+id/profileBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Profile"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.drawerlayout.widget.DrawerLayout>
+
+    <!-- ========================= -->
+    <!-- 🔥 FULL SCREEN LOTTIE -->
+    <!-- ========================= -->
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/successAnim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="#80000000"
+        app:lottie_autoPlay="false"
+        app:lottie_loop="false"
+        app:lottie_rawRes="@raw/success_anim"/>
+
+</FrameLayout>

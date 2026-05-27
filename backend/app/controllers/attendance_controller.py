@@ -9,8 +9,8 @@ import cv2
 import os
 
 
-COLLEGE_LAT = 23.526515
-COLLEGE_LNG = 87.742507
+COLLEGE_LAT = 22.575991
+COLLEGE_LNG = 88.427359
 
 
 # =========================

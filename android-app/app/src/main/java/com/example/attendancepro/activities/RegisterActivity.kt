@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Matrix
 import android.net.Uri
+import com.example.attendancepro.utils.ParticleView
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
@@ -19,7 +20,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.exifinterface.media.ExifInterface
 import com.example.attendancepro.R
@@ -50,19 +50,31 @@ class RegisterActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 🔥 EDGE TO EDGE (LIKE LOGIN)
+        // 🔥 EDGE TO EDGE
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        // 🔥 TRANSPARENT STATUS BAR
         window.statusBarColor = Color.TRANSPARENT
 
-        // 🔥 WHITE ICONS
         val controller = WindowInsetsControllerCompat(window, window.decorView)
         controller.isAppearanceLightStatusBars = false
 
         setContentView(R.layout.activity_register)
 
-        // 🔥 IMPORTANT: DO NOT ADD PADDING (this caused black bar earlier)
+        // =========================
+        // 🔥 PARTICLE BACKGROUND (ADDED)
+        // =========================
+        val container = findViewById<FrameLayout>(R.id.particleContainer)
+
+        container.addView(
+            ParticleView(this),
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        )
+
+        // =========================
+        // NO PADDING FIX
+        // =========================
         val root = findViewById<View>(android.R.id.content)
         ViewCompat.setOnApplyWindowInsetsListener(root) { _, insets -> insets }
 
@@ -85,7 +97,7 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     // =========================
-    // 📸 CAMERA PERMISSION
+    // CAMERA PERMISSION
     // =========================
     private fun checkCameraPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -115,7 +127,7 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     // =========================
-    // 📸 OPEN CAMERA
+    // OPEN CAMERA
     // =========================
     private fun openCamera() {
 
@@ -134,9 +146,6 @@ class RegisterActivity : AppCompatActivity() {
         cameraLauncher.launch(intent)
     }
 
-    // =========================
-    // 📸 CAMERA RESULT
-    // =========================
     private val cameraLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
 
@@ -152,7 +161,7 @@ class RegisterActivity : AppCompatActivity() {
         }
 
     // =========================
-    // 🔄 ROTATION FIX
+    // ROTATION FIX
     // =========================
     private fun fixRotation(file: File): Bitmap {
 
@@ -193,7 +202,7 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     // =========================
-    // 🚀 REGISTER API
+    // REGISTER API
     // =========================
     private fun registerUser() {
 
@@ -233,45 +242,9 @@ class RegisterActivity : AppCompatActivity() {
                         val message = res["message"]
 
                         if (error != null) {
-
-                            when {
-                                error.contains("Face") -> {
-                                    Toast.makeText(
-                                        this@RegisterActivity,
-                                        "This face is already registered. Please login.",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-
-                                error.contains("User") -> {
-                                    Toast.makeText(
-                                        this@RegisterActivity,
-                                        "Email already exists.",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-
-                                error.contains("Roll") -> {
-                                    Toast.makeText(
-                                        this@RegisterActivity,
-                                        "Roll number already registered.",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-
-                                else -> {
-                                    Toast.makeText(this@RegisterActivity, error, Toast.LENGTH_LONG).show()
-                                }
-                            }
-
+                            Toast.makeText(this@RegisterActivity, error, Toast.LENGTH_LONG).show()
                         } else if (message != null) {
-
-                            Toast.makeText(
-                                this@RegisterActivity,
-                                "Registration Successful ✅",
-                                Toast.LENGTH_LONG
-                            ).show()
-
+                            Toast.makeText(this@RegisterActivity, "Registration Successful ✅", Toast.LENGTH_LONG).show()
                             finish()
                         }
 
@@ -281,15 +254,9 @@ class RegisterActivity : AppCompatActivity() {
                 }
 
                 override fun onFailure(call: Call<Map<String, String>>, t: Throwable) {
-
                     registerBtn.isEnabled = true
                     registerBtn.text = "Register"
-
-                    Toast.makeText(
-                        this@RegisterActivity,
-                        "Error: ${t.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(this@RegisterActivity, "Error: ${t.message}", Toast.LENGTH_LONG).show()
                 }
             })
     }

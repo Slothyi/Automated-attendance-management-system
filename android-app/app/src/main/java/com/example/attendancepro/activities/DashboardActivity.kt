@@ -21,6 +21,7 @@ import androidx.core.view.GravityCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import com.airbnb.lottie.LottieAnimationView
 import com.example.attendancepro.R
 import com.example.attendancepro.api.RetrofitClient
 import com.example.attendancepro.models.AttendanceHistoryResponse
@@ -47,6 +48,7 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var nextTime: TextView
     private lateinit var historyText: TextView
     private lateinit var totalAttendance: TextView
+    private lateinit var successAnim: LottieAnimationView   // 🔥 FIXED
 
     private lateinit var imageFile: File
     private lateinit var imageUri: Uri
@@ -59,45 +61,40 @@ class DashboardActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // =========================
-        // 🔥 PERFECT STATUS BAR FIX (LIKE LOGIN)
-        // =========================
+        // 🔥 STATUS BAR FIX
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
         window.statusBarColor = android.graphics.Color.TRANSPARENT
-
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-
         WindowInsetsControllerCompat(window, window.decorView)
             .isAppearanceLightStatusBars = false
-        // =========================
 
         setContentView(R.layout.activity_dashboard)
 
-        // =========================
         // 🔥 DRAWER SETUP
-        // =========================
         val drawerLayout = findViewById<DrawerLayout>(R.id.drawerLayout)
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
 
         setSupportActionBar(toolbar)
 
         val toggle = ActionBarDrawerToggle(
-            this,
-            drawerLayout,
-            toolbar,
-            R.string.app_name,
-            R.string.app_name
+            this, drawerLayout, toolbar,
+            R.string.app_name, R.string.app_name
         )
 
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
-        // =========================
-        // 🔥 MODERN BACK HANDLER
-        // =========================
+        // 🔥 PROFILE CLICK FIX
+        findViewById<View>(R.id.profileBtn).setOnClickListener {
+            drawerLayout.closeDrawer(GravityCompat.START)
+            Handler(Looper.getMainLooper()).postDelayed({
+                startActivity(Intent(this, ProfileActivity::class.java))
+            }, 250)
+        }
+
+        // 🔥 BACK HANDLER
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -117,6 +114,8 @@ class DashboardActivity : AppCompatActivity() {
         nextTime = findViewById(R.id.nextTime)
         historyText = findViewById(R.id.historyText)
         totalAttendance = findViewById(R.id.totalAttendance)
+
+        successAnim = findViewById(R.id.successAnim)   // 🔥 IMPORTANT
 
         userName.text = "Welcome ${session.getName()} 👋"
         profileName.text = session.getName()
@@ -169,11 +168,7 @@ class DashboardActivity : AppCompatActivity() {
                 this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                101
-            )
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 101)
             return
         }
 
@@ -209,13 +204,20 @@ class DashboardActivity : AppCompatActivity() {
                     val res = response.body()
 
                     if (res?.status == "present") {
+
+                        showSuccessAnimation()   // 🔥 ANIMATION
+
                         markBtn.text = "Already Marked"
                         markBtn.isEnabled = false
+
                         startTimer(3600)
                         loadHistory()
+
                     } else if (res?.error == "cooldown") {
+
                         val minutes = res.remaining_minutes ?: 0
                         startTimer(minutes * 60)
+
                     } else {
                         Toast.makeText(this@DashboardActivity, res?.error ?: "Error", Toast.LENGTH_LONG).show()
                         resetButton()
@@ -228,8 +230,31 @@ class DashboardActivity : AppCompatActivity() {
             })
     }
 
-    private fun loadHistory() {
+    // =========================
+    // 🔥 FULL SCREEN LOTTIE
+    // =========================
+    private fun showSuccessAnimation() {
 
+        successAnim.cancelAnimation()
+        successAnim.visibility = View.VISIBLE
+        successAnim.alpha = 1f
+        successAnim.progress = 0f
+
+        successAnim.playAnimation()
+
+        handler.postDelayed({
+            successAnim.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .withEndAction {
+                    successAnim.cancelAnimation()
+                    successAnim.visibility = View.GONE
+                    successAnim.alpha = 1f
+                }
+        }, 1500)
+    }
+
+    private fun loadHistory() {
         RetrofitClient.instance.getHistory()
             .enqueue(object : Callback<AttendanceHistoryResponse> {
 
@@ -263,7 +288,6 @@ class DashboardActivity : AppCompatActivity() {
 
         handler.post(object : Runnable {
             override fun run() {
-
                 val mins = remainingSeconds / 60
                 nextTime.text = "Next mark in: $mins min"
 
@@ -283,7 +307,6 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private fun checkCooldownOnStart() {
-
         RetrofitClient.instance.getStatus()
             .enqueue(object : Callback<AttendanceResponse> {
 
