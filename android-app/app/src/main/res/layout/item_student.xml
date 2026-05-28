@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    android:orientation="horizontal"
+
+    android:padding="14dp"
+
+    android:background="#1A1325"
+
+    android:layout_marginBottom="10dp"
+
+    android:gravity="center_vertical">
+
+    <!-- 👤 NAME -->
+    <TextView
+        android:id="@+id/tvName"
+
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+
+        android:layout_weight="1"
+
+        android:text="Student Name"
+
+        android:textColor="#FFFFFF"
+
+        android:textSize="18sp"
+
+        android:textStyle="bold"/>
+
+    <!-- 🎫 ROLL -->
+    <TextView
+        android:id="@+id/tvRoll"
+
+        android:layout_width="85dp"
+        android:layout_height="wrap_content"
+
+        android:gravity="center"
+
+        android:text="3138"
+
+        android:textColor="#CBB3FF"
+
+        android:textSize="16sp"/>
+
+    <!-- ✅ STATUS -->
+    <TextView
+        android:id="@+id/tvStatus"
+
+        android:layout_width="90dp"
+        android:layout_height="wrap_content"
+
+        android:gravity="center"
+
+        android:text="Absent"
+
+        android:textStyle="bold"
+
+        android:textColor="#FF5252"
+
+        android:textSize="15sp"/>
+</LinearLayout>

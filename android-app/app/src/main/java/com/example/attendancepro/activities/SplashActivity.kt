@@ -26,7 +26,7 @@ class SplashActivity : AppCompatActivity() {
 
         Handler(Looper.getMainLooper()).postDelayed({
 
-            startActivity(Intent(this, LoginActivity::class.java))
+            startActivity(Intent(this, RoleSelectionActivity::class.java))
             overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up)
 
             finish()

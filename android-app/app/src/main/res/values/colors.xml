@@ -12,4 +12,6 @@
     <color name="grad6">#2C5364</color>
     <!-- Status bar color (top gradient match) -->
     <color name="status_bar_color">#1d5a87</color>
+
+
 </resources>

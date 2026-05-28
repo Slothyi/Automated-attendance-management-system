@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="future_bg_dark">#032F48</color>
+    <color name="future_bg_secondary">#02263E</color>
+    <color name="future_bg_surface">#073554</color>
+
+    <color name="future_cyan">#00B7FF</color>
+    <color name="future_cyan_light">#39C8FF</color>
+    <color name="future_cyan_glow">#00D9FF</color>
+
+    <color name="future_text_primary">#FFFFFF</color>
+    <color name="future_text_secondary">#A6C7DB</color>
+
+    <color name="future_glass">#160D1B24</color>
+    <color name="future_glass_border">#3300D9FF</color>
+
+</resources>

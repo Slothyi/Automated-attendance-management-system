@@ -1,12 +1,30 @@
 fastapi
 uvicorn
+
 pymongo
 python-dotenv
-passlib[bcrypt]
+dnspython
+
+passlib
+bcrypt==3.2.0
+
 python-jose
 python-multipart
+
+pydantic
+email-validator
+
 face_recognition
 opencv-python
 numpy
+Pillow
 pytz
-bcrypt==3.2.0
+
+# =========================
+# OPTIONAL (RECOMMENDED)
+# =========================
+
+pandas
+openpyxl
+reportlab
+apscheduler

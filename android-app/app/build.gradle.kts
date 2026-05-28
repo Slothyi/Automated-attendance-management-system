@@ -51,4 +51,7 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
     implementation("com.airbnb.android:lottie:6.4.0")
+    implementation("nl.dionsegijn:konfetti-xml:2.0.2")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
 }

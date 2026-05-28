@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:background="@drawable/bg_login">
+
+    <!-- FLOWING PARTICLES -->
+    <com.example.attendancepro.utils.ParticleView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false"/>
+
+    <!-- MAIN CONTENT -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:orientation="vertical"
+
+            android:gravity="center"
+
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:paddingTop="100dp"
+            android:paddingBottom="30dp">
+
+            <!-- TITLE -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="Add Students"
+
+                android:textSize="32sp"
+
+                android:textStyle="bold"
+
+                android:textColor="#FFFFFF"
+
+                android:layout_marginBottom="10dp"/>
+
+            <!-- SUBTITLE -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="Register students into your classroom"
+
+                android:textSize="15sp"
+
+                android:textColor="#B6D2E2"
+
+                android:layout_marginBottom="26dp"/>
+
+            <!-- CLASS NAME -->
+            <TextView
+                android:id="@+id/tvClassName"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="Class Name"
+
+                android:textSize="18sp"
+
+                android:textStyle="bold"
+
+                android:textColor="#FFFFFF"
+
+                android:layout_marginBottom="18dp"/>
+
+            <!-- GLASS CARD -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:backgroundTint="#F8FCFF"
+
+                app:cardCornerRadius="38dp"
+
+                app:cardElevation="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:orientation="vertical"
+
+                    android:padding="26dp">
+
+                    <!-- STUDENT NAME -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:hint="Student Name"
+
+                        android:textColorHint="#7E97A7"
+
+                        app:hintTextColor="#7E97A7"
+
+                        app:boxBackgroundMode="filled"
+
+                        app:boxBackgroundColor="#EEF6FB"
+
+                        app:boxStrokeColor="#1BA8E8"
+
+                        app:boxStrokeWidth="1dp"
+
+                        app:boxStrokeWidthFocused="2dp"
+
+                        app:boxCornerRadiusTopStart="24dp"
+                        app:boxCornerRadiusTopEnd="24dp"
+                        app:boxCornerRadiusBottomStart="24dp"
+                        app:boxCornerRadiusBottomEnd="24dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etStudentName"
+
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+
+                            android:padding="18dp"
+
+                            android:textColor="#111111"
+
+                            android:textSize="15sp"/>
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- STUDENT ROLL -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:layout_marginTop="20dp"
+
+                        android:hint="Roll Number"
+
+                        android:textColorHint="#7E97A7"
+
+                        app:hintTextColor="#7E97A7"
+
+                        app:boxBackgroundMode="filled"
+
+                        app:boxBackgroundColor="#EEF6FB"
+
+                        app:boxStrokeColor="#1BA8E8"
+
+                        app:boxStrokeWidth="1dp"
+
+                        app:boxStrokeWidthFocused="2dp"
+
+                        app:boxCornerRadiusTopStart="24dp"
+                        app:boxCornerRadiusTopEnd="24dp"
+                        app:boxCornerRadiusBottomStart="24dp"
+                        app:boxCornerRadiusBottomEnd="24dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etStudentRoll"
+
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+
+                            android:padding="18dp"
+
+                            android:textColor="#111111"
+
+                            android:textSize="15sp"/>
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- ADD BUTTON -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAddStudent"
+
+                        android:layout_width="match_parent"
+                        android:layout_height="58dp"
+
+                        android:layout_marginTop="32dp"
+
+                        android:text="Add Student"
+
+                        android:textAllCaps="false"
+
+                        android:textSize="16sp"
+
+                        android:textStyle="bold"
+
+                        android:textColor="#FFFFFF"
+
+                        android:backgroundTint="#1294DB"
+
+                        app:cornerRadius="30dp"/>
+
+                    <!-- FINISH BUTTON -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnFinish"
+
+                        android:layout_width="match_parent"
+                        android:layout_height="58dp"
+
+                        android:layout_marginTop="16dp"
+
+                        android:text="Finish"
+
+                        android:textAllCaps="false"
+
+                        android:textSize="16sp"
+
+                        android:textStyle="bold"
+
+                        android:textColor="#FFFFFF"
+
+                        android:backgroundTint="#0D7FC2"
+
+                        app:cornerRadius="30dp"/>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</FrameLayout>

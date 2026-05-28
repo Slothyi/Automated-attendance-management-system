@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
 
         // ❌ If not logged in → go to Log in
         if (token.isNullOrEmpty()) {
-            startActivity(Intent(this, LoginActivity::class.java))
+            startActivity(Intent(this, StudentLoginActivity::class.java))
             return
         }
 
@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         logoutBtn.setOnClickListener {
             sessionManager.clearToken()
 
-            startActivity(Intent(this, LoginActivity::class.java))
+            startActivity(Intent(this, StudentLoginActivity::class.java))
             finish()
         }
     }

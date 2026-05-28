@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    android:orientation="vertical"
+
+    android:background="#1A1325"
+
+    android:padding="16dp"
+
+    android:layout_marginBottom="12dp">
+
+    <!-- 👤 NAME -->
+    <TextView
+        android:id="@+id/tvName"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:text="Student Name"
+
+        android:textColor="#FFFFFF"
+
+        android:textStyle="bold"
+
+        android:textSize="20sp"/>
+
+    <!-- 🎫 ROLL -->
+    <TextView
+        android:id="@+id/tvRoll"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:text="3135"
+
+        android:textColor="#D0B4FF"
+
+        android:textSize="15sp"
+
+        android:layout_marginTop="4dp"/>
+
+    <!-- 📅 WEEKLY -->
+    <TextView
+        android:id="@+id/tvWeekly"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:text="Weekly Attendance: 80%"
+
+        android:textColor="#4DFF91"
+
+        android:textSize="15sp"
+
+        android:layout_marginTop="10dp"/>
+
+    <!-- 📆 MONTHLY -->
+    <TextView
+        android:id="@+id/tvMonthly"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:text="Monthly Attendance: 75%"
+
+        android:textColor="#4DA6FF"
+
+        android:textSize="15sp"
+
+        android:layout_marginTop="6dp"/>
+</LinearLayout>

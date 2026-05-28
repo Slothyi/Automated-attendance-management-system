@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_futuristic_main">
+
+    <!-- TECH BACKGROUND -->
+    <com.example.attendancepro.activities.TechBackgroundView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false"/>
+
+    <!-- PARTICLES -->
+    <com.example.attendancepro.utils.ParticleView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false"/>
+
+    <!-- GLOWING BOTTOM WAVE -->
+    <com.example.attendancepro.activities.WavyMeshView
+        android:layout_width="match_parent"
+        android:layout_height="320dp"
+        android:layout_alignParentBottom="true"
+        android:clickable="false"
+        android:focusable="false"/>
+
+    <!-- MAIN CONTENT -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="90dp"
+        android:elevation="20dp">
+
+        <!-- TOP SPACING -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.58"/>
+
+        <!-- FUTURISTIC HERO LOGO -->
+        <FrameLayout
+            android:id="@+id/logoContainer"
+            android:layout_width="280dp"
+            android:layout_height="220dp"
+            android:layout_marginBottom="2dp">
+
+            <!-- AMBIENT GLOW -->
+            <View
+                android:layout_width="230dp"
+                android:layout_height="210dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_logo_ambient_glow"/>
+
+            <!-- MAIN LOGO -->
+            <ImageView
+                android:layout_width="185dp"
+                android:layout_height="185dp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="8dp"
+                android:src="@drawable/attendance_logo"
+                android:scaleType="fitCenter"/>
+        </FrameLayout>
+
+        <!-- TITLE -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Attendance System"
+            android:textSize="34sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            android:shadowColor="#6600D9FF"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="14"/>
+
+        <!-- SUBTITLE -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Choose your role to continue"
+            android:textSize="18sp"
+            android:textColor="#B6D2E2"
+            android:layout_marginTop="10dp"
+            android:gravity="center"/>
+
+        <!-- SPACING -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="36dp"/>
+
+        <!-- GLASS CONTAINER -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="60dp"
+            android:orientation="vertical"
+            android:padding="22dp"
+            android:background="@drawable/bg_glass_card"
+            android:elevation="18dp">
+
+            <!-- ADMIN CARD -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnAdmin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="22dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="34dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="98dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="18dp"
+                    android:paddingEnd="22dp"
+                    android:paddingVertical="4dp"
+                    android:background="@drawable/bg_cyan_glow">
+
+                    <!-- ICON -->
+                    <FrameLayout
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:background="@drawable/bg_neon_button">
+
+                        <ImageView
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_admin"
+                            app:tint="@android:color/white"/>
+                    </FrameLayout>
+
+                    <!-- TEXTS -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingStart="22dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Admin Login"
+                            android:textColor="@android:color/white"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Access admin dashboard"
+                            android:textColor="#9EC2D9"
+                            android:textSize="14sp"
+                            android:layout_marginTop="4dp"/>
+
+                    </LinearLayout>
+
+                    <!-- ARROW -->
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/ic_arrow"
+                        app:tint="#00D9FF"/>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- STUDENT CARD -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnStudent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="34dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="98dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="18dp"
+                    android:paddingEnd="22dp"
+                    android:paddingVertical="4dp"
+                    android:background="@drawable/bg_cyan_glow">
+
+                    <!-- ICON -->
+                    <FrameLayout
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:background="@drawable/bg_neon_button">
+
+                        <ImageView
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_student"
+                            app:tint="@android:color/white"/>
+                    </FrameLayout>
+
+                    <!-- TEXTS -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingStart="22dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Student Login"
+                            android:textColor="@android:color/white"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Access student dashboard"
+                            android:textColor="#9EC2D9"
+                            android:textSize="14sp"
+                            android:layout_marginTop="4dp"/>
+
+                    </LinearLayout>
+
+                    <!-- ARROW -->
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/ic_arrow"
+                        app:tint="#00D9FF"/>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+        <!-- BOTTOM SPACING -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.48"/>
+
+    </LinearLayout>
+
+</RelativeLayout>
