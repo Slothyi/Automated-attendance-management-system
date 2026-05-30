@@ -15,4 +15,20 @@
     <color name="future_glass">#160D1B24</color>
     <color name="future_glass_border">#3300D9FF</color>
 
+    <!-- Dashboard Redesign Colors -->
+    <color name="dashboard_bg">#0A0E17</color>
+    <color name="card_bg">#0F1923</color>
+    <color name="card_border">#1A2E3D</color>
+    <color name="cyan_accent">#00E5FF</color>
+    <color name="cyan_glow_soft">#1A00E5FF</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#7B8D9E</color>
+    <color name="text_muted">#4A5568</color>
+    <color name="present_green">#00C853</color>
+    <color name="absent_red">#FF3B30</color>
+    <color name="mark_btn_gradient_start">#00C8E8</color>
+    <color name="mark_btn_gradient_end">#0082C0</color>
+    <color name="nav_active">#00E5FF</color>
+    <color name="nav_inactive">#3A4A5C</color>
+
 </resources>

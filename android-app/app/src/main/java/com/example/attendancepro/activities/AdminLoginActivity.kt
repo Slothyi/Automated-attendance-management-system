@@ -18,6 +18,7 @@ import com.google.android.material.textfield.TextInputEditText
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.Locale
 
 import android.graphics.Color
 import androidx.core.view.WindowCompat
@@ -148,14 +149,38 @@ class AdminLoginActivity : AppCompatActivity() {
             return
         }
 
+        val normalizedName =
+            name.uppercase(Locale.ROOT)
+
+        val normalizedEmail =
+            email.lowercase(Locale.ROOT)
+
+        if (
+            !normalizedEmail.contains("@") ||
+            !normalizedEmail.contains(".")
+        ) {
+
+            Toast.makeText(
+
+                this,
+
+                "Invalid email address",
+
+                Toast.LENGTH_SHORT
+
+            ).show()
+
+            return
+        }
+
         // =========================
         // ✅ REQUEST
         // =========================
         val request = AdminLoginRequest(
 
-            name,
+            normalizedName,
 
-            email,
+            normalizedEmail,
 
             password
         )
@@ -251,7 +276,7 @@ class AdminLoginActivity : AppCompatActivity() {
                             // =========================
                             sessionManager.saveName(
 
-                                name
+                                data.name ?: normalizedName
                             )
 
                             // =========================

@@ -1,5 +1,7 @@
 package com.example.attendancepro.models
 
+import android.R
+
 data class ClassItem(
 
     val class_id: String,
@@ -16,5 +18,9 @@ data class ClassItem(
 
     val student_count: Int,
 
-    val present_count: Int
+    val present_count: Int,
+
+    val created_at: String? = null,
+
+    val expires_at: String? = null
 )

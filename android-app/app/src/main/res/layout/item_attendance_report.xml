@@ -44,6 +44,23 @@
 
         android:layout_marginTop="4dp"/>
 
+    <!-- ✅ STATUS -->
+    <TextView
+        android:id="@+id/tvStatus"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:text="Present"
+
+        android:textStyle="bold"
+
+        android:textSize="16sp"
+
+        android:textColor="#4DFF91"
+
+        android:layout_marginTop="8dp"/>
+
     <!-- 📅 WEEKLY -->
     <TextView
         android:id="@+id/tvWeekly"
@@ -51,7 +68,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
 
-        android:text="Weekly Attendance: 80%"
+        android:text="Weekly Attendance: 5"
 
         android:textColor="#4DFF91"
 
@@ -66,11 +83,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
 
-        android:text="Monthly Attendance: 75%"
+        android:text="Monthly Attendance: 28"
 
         android:textColor="#4DA6FF"
 
         android:textSize="15sp"
 
         android:layout_marginTop="6dp"/>
+
 </LinearLayout>

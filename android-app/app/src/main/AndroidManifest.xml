@@ -12,6 +12,21 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
+    <!-- 📡 BLUETOOTH -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"/>
+
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"/>
+
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"/>
+
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE"/>
+
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_CONNECT"/>
+
     <!-- 📸 CAMERA FEATURE -->
     <uses-feature
         android:name="android.hardware.camera"
@@ -83,6 +98,14 @@
             android:name=".activities.DashboardActivity"
             android:exported="false"/>
 
+        <activity
+            android:name=".activities.CalendarActivity"/>
+
+        <!-- 📅 STUDENT CALENDAR -->
+        <activity
+            android:name=".activities.StudentCalendarActivity"
+            android:exported="false"/>
+
         <!-- 📸 ATTENDANCE -->
         <activity
             android:name=".activities.AttendanceActivity"
@@ -91,6 +114,11 @@
         <!-- 👤 PROFILE -->
         <activity
             android:name=".activities.ProfileActivity"
+            android:exported="false"/>
+
+        <!-- 🎓 STUDENT CLASSES -->
+        <activity
+            android:name=".activities.StudentClassesActivity"
             android:exported="false"/>
 
         <!-- 🆕 REGISTER -->

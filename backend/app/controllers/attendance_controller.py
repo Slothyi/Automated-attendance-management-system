@@ -1,18 +1,5 @@
-from app.config.db import (
-    attendance_collection,
-    students_collection,
-    classes_collection,
-    registered_students_collection
-)
-
-from app.utils.distance import (
-    calculate_distance
-)
-
-from app.utils.face_recognition_utils import (
-    get_face_encoding,
-    compare_faces
-)
+from fastapi import UploadFile
+from bson import ObjectId
 
 from datetime import (
     datetime,
@@ -20,574 +7,408 @@ from datetime import (
     timedelta
 )
 
-from bson import ObjectId
-
-import numpy as np
-import cv2
 import os
+import numpy as np
 
+from app.config.db import (
+
+    attendance_collection,
+
+    registered_students_collection,
+
+    classes_collection,
+    
+    students_collection
+)
+
+
+from app.utils.distance import (
+    calculate_distance
+)
+
+from app.utils.face_recognition_utils import (
+    get_face_encoding
+)
+
+from app.controllers.session_controller import (
+    verify_attendance_session
+)
 
 # =========================
 # 📍 COLLEGE LOCATION
 # =========================
-COLLEGE_LAT = 23.526479
-COLLEGE_LNG = 87.742496
-
+COLLEGE_LAT = 23.526485
+COLLEGE_LNG = 87.742550
 
 # =========================
-# ⏱️ 1 HOUR RULE
+# 🔥 FACE MATCH THRESHOLD
 # =========================
-def can_mark_attendance(last_attendance):
-
-    if not last_attendance:
-        return True
-
-    if last_attendance.tzinfo is None:
-
-        last_attendance = (
-            last_attendance.replace(
-                tzinfo=timezone.utc
-            )
-        )
-
-    now = datetime.now(timezone.utc)
-
-    return (
-
-        now - last_attendance
-
-    ) >= timedelta(hours=1)
+FACE_THRESHOLD = 0.5
 
 
 # =========================
 # ✅ MARK ATTENDANCE
 # =========================
 def mark_attendance(
+
     user_id,
     lat,
     lng,
-    file
+    session_code,
+    session_uuid,
+    file: UploadFile
 ):
 
-    try:
-
-        # =========================
-        # 📍 LOCATION CHECK
-        # =========================
-        distance = calculate_distance(
-
-            lat,
-            lng,
-
-            COLLEGE_LAT,
-            COLLEGE_LNG
-        )
-
-        if distance > 0.2:
-
-            return {
-
-                "status": "Error",
-
-                "error":
-                    "Outside college area"
-            }
-
-        # =========================
-        # 🧠 FETCH USER
-        # =========================
-        user = (
-            registered_students_collection
-            .find_one({
-
-                "_id": ObjectId(user_id)
-            })
-        )
-
-        if not user:
-
-            return {
-
-                "status": "Error",
-
-                "error":
-                    "User not found"
-            }
-
-        # =========================
-        # ⏳ COOLDOWN CHECK
-        # =========================
-        last = user.get(
-            "last_attendance"
-        )
-
-        if not can_mark_attendance(last):
-
-            now = datetime.now(
-                timezone.utc
-            )
-
-            if (
-                last and
-                last.tzinfo is None
-            ):
-
-                last = last.replace(
-                    tzinfo=timezone.utc
-                )
-
-            remaining = (
-                timedelta(hours=1)
-                - (now - last)
-            )
-
-            minutes = int(
-
-                remaining.total_seconds()
-                / 60
-            )
-
-            return {
-
-                "status": "Error",
-
-                "error":
-                    f"Wait {minutes} minutes before marking again"
-            }
-
-        # =========================
-        # 📸 READ FILE
-        # =========================
-        file_bytes = file.file.read()
-
-        if (
-            not file_bytes or
-            len(file_bytes) == 0
-        ):
-
-            return {
-
-                "status": "Error",
-
-                "error":
-                    "Empty image received"
-            }
-
-        # =========================
-        # 📂 SAVE IMAGE
-        # =========================
-        os.makedirs(
-
-            "uploads",
-
-            exist_ok=True
-        )
-
-        file_path = (
-
-            "uploads/"
-
-            f"selfie_"
-            f"{datetime.now().timestamp()}.jpg"
-        )
-
-        with open(file_path, "wb") as f:
-
-            f.write(file_bytes)
-
-        # =========================
-        # 🖼️ VERIFY IMAGE
-        # =========================
-        image = cv2.imread(file_path)
-
-        if image is None:
-
-            return {
-
-                "status": "Error",
-
-                "error":
-                    "Corrupted image"
-            }
-
-        # =========================
-        # 🤖 UNKNOWN FACE
-        # =========================
-        unknown_encoding = (
-            get_face_encoding(
-                file_path
-            )
-        )
-
-        if unknown_encoding is None:
-
-            return {
-
-                "status": "Error",
-
-                "error":
-                    "No valid face detected"
-            }
-
-        # =========================
-        # 🧠 KNOWN FACE
-        # =========================
-        known_encoding = np.array(
-
-            user["face_encoding"]
-        )
-
-        # =========================
-        # 🤖 FACE MATCH
-        # =========================
-        match = compare_faces(
-
-            known_encoding,
-            unknown_encoding
-        )
-
-        if not match:
-
-            return {
-
-                "status": "Error",
-
-                "error":
-                    "Face does not match"
-            }
-
-        # =========================
-        # 🕒 CURRENT TIME
-        # =========================
-        now = datetime.now(
-            timezone.utc
-        )
-
-        # =========================
-        # 💾 SAVE ATTENDANCE
-        # =========================
-        attendance = {
-
-            "user_id": user_id,
-
-            "status": "Present",
-
-            "selfie_url": file_path,
-
-            "latitude": lat,
-
-            "longitude": lng,
-
-            "timestamp": now
-        }
-
-        attendance_collection.insert_one(
-            attendance
-        )
-
-        # =========================
-        # 🔄 UPDATE REGISTERED USER
-        # =========================
-        registered_students_collection.update_one(
-
-            {
-                "_id": ObjectId(user_id)
-            },
-
-            {
-                "$set": {
-
-                    "last_attendance":
-                        now
-                }
-            }
-        )
-
-        # =========================
-        # 🔄 UPDATE AUTHORIZED STUDENT
-        # =========================
-        students_collection.update_one(
-
-            {
-                "roll": user["roll"]
-            },
-
-            {
-                "$set": {
-
-                    "attendance_status":
-                        "Present"
-                }
-            }
-        )
-
-        # =========================
-        # 🔄 UPDATE CLASS STATUS
-        # =========================
-        classes_collection.update_one(
-
-            {
-                "_id": ObjectId(
-                    user["class_id"]
-                ),
-
-                "students.roll":
-                    user["roll"]
-            },
-
-            {
-                "$set": {
-
-                    "students.$.attendance_status":
-                        "Present"
-                }
-            }
-        )
-
-        # =========================
-        # ✅ SUCCESS
-        # =========================
-        return {
-
-            "status": "Present",
-
-            "message":
-                "Attendance marked successfully"
-        }
-
-    except Exception as e:
-
-        print("❌ ERROR:", str(e))
+    # =========================
+    # 👨‍🎓 GET STUDENT
+    # =========================
+    student = (
+        registered_students_collection
+        .find_one({
+
+            "_id":
+                ObjectId(user_id)
+        })
+    )
+
+    if not student:
 
         return {
 
             "status": "Error",
 
             "error":
-                str(e)
+                "Student not found"
         }
+
+    # =========================
+    # 📍 LOCATION CHECK
+    # =========================
+    distance = calculate_distance(
+
+        lat,
+        lng,
+
+        COLLEGE_LAT,
+        COLLEGE_LNG
+    )
+
+    if distance > 0.2:
+
+        return {
+
+            "status": "Error",
+
+            "error":
+                "Outside college area"
+        }
+
+    # =========================
+    # 📡 VERIFY ATTENDANCE SESSION
+    # =========================
+    if not verify_attendance_session(
+        session_code,
+        student["class_id"],
+        session_uuid
+    ):
+
+        return {
+
+            "status": "Error",
+
+            "error":
+                "No active attendance session"
+        }
+
+    # =========================
+    # 📂 SAVE IMAGE
+    # =========================
+    os.makedirs(
+        "uploads",
+        exist_ok=True
+    )
+
+    file_path = (
+
+        f"uploads/"
+        f"{student['roll']}_attendance.jpg"
+    )
+
+    with open(file_path, "wb") as f:
+
+        f.write(file.file.read())
+
+    # =========================
+    # 🤖 GET FACE ENCODING
+    # =========================
+    encoding = get_face_encoding(
+        file_path
+    )
+
+    if encoding is None:
+
+        return {
+
+            "status": "Error",
+
+            "error":
+                "No face detected"
+        }
+
+    # =========================
+    # 🔍 MATCH FACE
+    # =========================
+    stored_encoding = np.array(
+
+        student["face_encoding"]
+    )
+
+    distance_score = np.linalg.norm(
+
+        stored_encoding -
+
+        np.array(encoding)
+    )
+
+    print(
+        "🔍 FACE DISTANCE:",
+        distance_score
+    )
+
+    if distance_score > FACE_THRESHOLD:
+
+        return {
+
+            "status": "Error",
+
+            "error":
+                "Face does not match"
+        }
+
+    # =========================
+    # 📅 TODAY DATE
+    # =========================
+    today = datetime.now(
+        timezone.utc
+    ).strftime("%Y-%m-%d")
+
+    # =========================
+    # ❌ ALREADY PRESENT?
+    # =========================
+    existing = (
+        attendance_collection.find_one({
+
+            "student_id": user_id,
+
+            "date": today
+        })
+    )
+
+    if existing:
+
+        return {
+
+            "status": "Error",
+
+            "error":
+                "Attendance already marked"
+        }
+
+    # =========================
+    # 🏫 FIND STUDENT CLASS
+    # =========================
+    class_data = classes_collection.find_one({
+
+        "students.roll":
+            student["roll"]
+    })
+
+    class_id = None
+    class_name = None
+
+    if class_data:
+
+        class_id = str(
+            class_data["_id"]
+        )
+
+        class_name = (
+            class_data["class_name"]
+        )
+
+    # =========================
+    # ✅ SAVE ATTENDANCE
+    # =========================
+    attendance_collection.insert_one({
+
+        "student_id":
+            user_id,
+
+        "name":
+            student["name"],
+
+        "roll":
+            student["roll"],
+
+        "class_id":
+            class_id,
+
+        "class_name":
+            class_name,
+
+        "date":
+            today,
+
+        "status":
+            "Present",
+
+        "created_at":
+            datetime.now(
+                timezone.utc
+            )
+    })
+    
+    # =========================
+    # ✅ UPDATE STUDENT STATUS
+    # =========================
+    students_collection.update_one(
+        {
+        "roll": student["roll"]
+        },
+                                   
+        {
+            "$set": {
+                "attendance_status": "Present"
+            }
+        })
+    # =========================
+    # 🔄 UPDATE LAST ATTENDANCE
+    # =========================
+    registered_students_collection.update_one(
+
+        {
+            "_id":
+                ObjectId(user_id)
+        },
+
+        {
+            "$set": {
+
+                "last_attendance":
+                    today
+            }
+        }
+    )
+
+    return {
+
+        "status": "Success",
+
+        "message":
+            "Attendance marked successfully"
+    }
+
 
 # =========================
 # ❌ UNMARK ATTENDANCE
 # =========================
 def unmark_attendance(user_id):
 
-    try:
+    today = datetime.now(
+        timezone.utc
+    ).strftime("%Y-%m-%d")
 
-        # =========================
-        # 🧠 FETCH USER
-        # =========================
-        user = (
-            registered_students_collection
-            .find_one({
+    attendance_doc = (
+        attendance_collection.find_one({
 
-                "_id": ObjectId(user_id)
-            })
-        )
+            "student_id":
+                user_id,
 
-        if not user:
+            "date":
+                today
+        })
+    )
 
-            return {
+    if attendance_doc:
 
-                "status": "Error",
-
-                "error":
-                    "User not found"
-            }
-
-        # =========================
-        # 🗑️ DELETE ATTENDANCE
-        # =========================
-        result = (
-            attendance_collection
-            .find_one_and_delete(
-
-                {
-                    "user_id": user_id
-                },
-
-                sort=[("timestamp", -1)]
-            )
-        )
-
-        if not result:
-
-            return {
-
-                "status": "Error",
-
-                "error":
-                    "No attendance found"
-            }
-
-        # =========================
-        # 🔄 RESET USER
-        # =========================
-        registered_students_collection.update_one(
-
-            {
-                "_id": ObjectId(user_id)
-            },
-
-            {
-                "$set": {
-
-                    "last_attendance":
-                        None
-                }
-            }
-        )
-
-        # =========================
-        # 🔄 RESET STUDENT STATUS
-        # =========================
         students_collection.update_one(
 
             {
-                "roll": user["roll"]
+                "roll":
+                    attendance_doc["roll"]
             },
 
             {
                 "$set": {
-
                     "attendance_status":
                         "Absent"
                 }
             }
         )
 
-        # =========================
-        # 🔄 RESET CLASS STATUS
-        # =========================
-        classes_collection.update_one(
+    result = (
+        attendance_collection.delete_one({
 
-            {
-                "_id": ObjectId(
-                    user["class_id"]
-                ),
+            "student_id":
+                user_id,
 
-                "students.roll":
-                    user["roll"]
-            },
+            "date":
+                today
+        })
+    )
 
-            {
-                "$set": {
-
-                    "students.$.attendance_status":
-                        "Absent"
-                }
-            }
-        )
+    if result.deleted_count == 1:
 
         return {
 
             "status": "Success",
 
-            "message":
-                "Attendance unmarked successfully"
-        }
-
-    except Exception as e:
-
-        print("❌ ERROR:", str(e))
-
-        return {
-
-            "status": "Error",
-
             "error":
-                str(e)
+                "Attendance not found"
         }
 
+    return {
 
+        "status": "Success",
+
+        "message":
+            "Attendance Unmarked"
+    }
 # =========================
 # 📊 TODAY STATUS
 # =========================
 def get_today_status(user_id):
 
-    try:
+    today = datetime.now(
+        timezone.utc
+    ).strftime("%Y-%m-%d")
 
-        user = (
-            registered_students_collection
-            .find_one({
+    attendance = (
+        attendance_collection.find_one({
 
-                "_id": ObjectId(user_id)
-            })
-        )
+            "student_id":
+                user_id,
 
-        if not user:
+            "date":
+                today
+        })
+    )
 
-            return {
-
-                "status": "Error",
-
-                "error":
-                    "User not found"
-            }
-
-        last = user.get(
-            "last_attendance"
-        )
-
-        if not last:
-
-            return {
-
-                "status":
-                    "Absent"
-            }
-
-        now = datetime.now(
-            timezone.utc
-        )
-
-        if last.tzinfo is None:
-
-            last = last.replace(
-                tzinfo=timezone.utc
-            )
-
-        diff = now - last
-
-        if diff < timedelta(hours=1):
-
-            remaining = (
-                timedelta(hours=1)
-                - diff
-            )
-
-            minutes = int(
-
-                remaining.total_seconds()
-                / 60
-            )
-
-            return {
-
-                "status":
-                    "Present",
-
-                "remaining_minutes":
-                    minutes
-            }
+    if attendance:
 
         return {
 
-            "status":
-                "Ready"
+            "marked": True,
+
+            "status": "Present"
         }
 
-    except Exception as e:
+    return {
 
-        print("❌ ERROR:", str(e))
+        "marked": False,
 
-        return {
-
-            "status": "Error",
-
-            "error":
-                str(e)
-        }
+        "status": "Absent"
+    }
 
 
 # =========================
@@ -595,190 +416,224 @@ def get_today_status(user_id):
 # =========================
 def get_weekly_history(user_id):
 
-    try:
+    history = list(
 
-        now = datetime.now(
-            timezone.utc
+        attendance_collection.find({
+
+            "student_id":
+                user_id
+        })
+
+        .sort(
+            "created_at",
+            -1
         )
 
-        week_ago = (
-            now - timedelta(days=7)
-        )
+        .limit(7)
+    )
 
-        records = (
-            attendance_collection.find({
+    formatted = []
 
-                "user_id": user_id,
+    for item in history:
 
-                "timestamp": {
-                    "$gte": week_ago
-                }
+        formatted.append({
 
-            }).sort(
-                "timestamp",
-                -1
-            )
-        )
+            "date":
+                item["date"],
 
-        history = []
+            "status":
+                item["status"]
+        })
 
-        for r in records:
+    return {
+        "history": formatted
+    }
 
-            history.append({
-
-                "date":
-                    r["timestamp"].strftime(
-                        "%Y-%m-%d"
-                    ),
-
-                "status":
-                    r["status"]
-            })
-
-        return {
-
-            "status": "Success",
-
-            "history":
-                history
-        }
-
-    except Exception as e:
-
-        print("❌ ERROR:", str(e))
-
-        return {
-
-            "status": "Error",
-
-            "error":
-                str(e)
-        }
 
 # =========================
 # 📊 CLASS ATTENDANCE REPORT
 # =========================
-def get_class_attendance_report(class_id):
-
-    from datetime import datetime, timedelta
+def get_class_attendance_report(
+    class_id
+):
 
     # =========================
-    # ✅ FIND CLASS
+    # 🏫 FIND CLASS
     # =========================
-    existing_class = classes_collection.find_one({
+    class_data = classes_collection.find_one({
 
-        "_id": ObjectId(class_id)
+        "_id":
+            ObjectId(class_id)
     })
 
-    if not existing_class:
+    if not class_data:
 
         return {
-            "error": "Class not found"
+
+            "success": False,
+
+            "error":
+                "Class not found"
         }
 
-    students = students_collection.find({
-
-        "class_id": class_id
-    })
+    students = class_data.get(
+        "students",
+        []
+    )
 
     report = []
 
-    today = datetime.utcnow()
+    present_count = 0
+    absent_count = 0
+    na_count = 0
 
-    week_ago = today - timedelta(days=7)
+    # =========================
+    # 📅 DATE RANGES
+    # =========================
+    today = datetime.now(timezone.utc)
 
-    month_ago = today - timedelta(days=30)
+    week_start = today - timedelta(days=7)
 
+    month_start = today - timedelta(days=30)
+
+    today_str = today.strftime("%Y-%m-%d")
+
+    # =========================
+    # 👨‍🎓 LOOP STUDENTS
+    # =========================
     for student in students:
 
-        roll = student["roll"]
+        roll = student.get("roll")
 
-        # =========================
-        # ✅ REGISTERED CHECK
-        # =========================
-        registered = (
+        name = student.get("name")
+
+        registered_student = (
             registered_students_collection.find_one({
-
                 "roll": roll
             })
         )
 
-        if not registered:
-
-            continue
-
-        user_id = str(registered["_id"])
-
         # =========================
-        # ✅ WEEKLY RECORDS
+        # ❌ NOT REGISTERED
         # =========================
-        weekly_records = list(
+        if not registered_student:
 
-            attendance_collection.find({
+            status = "N/A"
 
-                "user_id": user_id,
+            weekly_count = 0
 
-                "timestamp": {
-                    "$gte": week_ago
-                }
-            })
-        )
+            monthly_count = 0
 
-        # =========================
-        # ✅ MONTHLY RECORDS
-        # =========================
-        monthly_records = list(
+            na_count += 1
 
-            attendance_collection.find({
+        else:
 
-                "user_id": user_id,
+            # =========================
+            # 📊 WEEKLY COUNT
+            # =========================
+            weekly_count = (
+                attendance_collection.count_documents({
 
-                "timestamp": {
-                    "$gte": month_ago
-                }
-            })
-        )
+                    "roll": roll,
 
-        weekly_present = len(weekly_records)
+                    "created_at": {
+                        "$gte": week_start
+                    }
+                })
+            )
 
-        monthly_present = len(monthly_records)
+            # =========================
+            # 📊 MONTHLY COUNT
+            # =========================
+            monthly_count = (
+                attendance_collection.count_documents({
 
-        weekly_percentage = min(
-            int((weekly_present / 7) * 100),
-            100
-        )
+                    "roll": roll,
 
-        monthly_percentage = min(
-            int((monthly_present / 30) * 100),
-            100
-        )
+                    "created_at": {
+                        "$gte": month_start
+                    }
+                })
+            )
+
+            # =========================
+            # 📅 TODAY ATTENDANCE
+            # =========================
+            attendance = (
+                attendance_collection.find_one({
+
+                    "roll": roll,
+
+                    "date": today_str
+                })
+            )
+
+            if attendance:
+
+                status = "Present"
+
+                present_count += 1
+
+            else:
+
+                status = "Absent"
+
+                absent_count += 1
 
         report.append({
 
-            "name":
-                student["name"],
+            "name": name,
 
-            "roll":
-                roll,
+            "roll": roll,
 
-            "weekly_present":
-                weekly_present,
+            "attendance_status": status,
 
-            "monthly_present":
-                monthly_present,
+            "weekly_attendance": weekly_count,
 
-            "weekly_percentage":
-                weekly_percentage,
-
-            "monthly_percentage":
-                monthly_percentage
+            "monthly_attendance": monthly_count
         })
 
     return {
 
-        "class_name":
-            existing_class["class_name"],
+        "success": True,
 
-        "report":
+        "class_name":
+            class_data["class_name"],
+
+        "present_students":
+            present_count,
+
+        "absent_students":
+            absent_count,
+
+        "na_students":
+            na_count,
+
+        "students":
             report
+    }
+
+# =========================
+# 🎓 GET ATTENDED CLASSES
+# =========================
+def get_student_classes(user_id):
+    pipeline = [
+        {"$match": {"student_id": user_id, "status": "Present"}},
+        {"$group": {"_id": "$class_name", "attended_count": {"$sum": 1}}},
+        {"$sort": {"attended_count": -1}}
+    ]
+    results = list(attendance_collection.aggregate(pipeline))
+    
+    classes_list = []
+    for item in results:
+        # Use class_name string
+        c_name = item["_id"] if item["_id"] else "Unknown Class"
+        classes_list.append({
+            "class_name": c_name,
+            "attended_count": item["attended_count"]
+        })
+        
+    return {
+        "success": True,
+        "classes": classes_list
     }

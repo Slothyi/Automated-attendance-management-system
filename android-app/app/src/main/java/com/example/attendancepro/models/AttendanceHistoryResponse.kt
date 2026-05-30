@@ -6,5 +6,6 @@ data class AttendanceHistoryResponse(
 
 data class HistoryItem(
     val date: String,
-    val status: String
+    val status: String,
+    val time: String? = null
 )

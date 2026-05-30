@@ -4,16 +4,13 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
 
-    android:layout_width="245dp"
+    android:layout_width="175dp"
     android:layout_height="wrap_content"
 
-    android:layout_marginEnd="18dp"
-    android:layout_marginTop="8dp"
-    android:layout_marginBottom="8dp"
+    android:layout_marginEnd="10dp"
 
-    android:backgroundTint="#163548"
-
-    app:cardCornerRadius="36dp"
+    app:cardBackgroundColor="#163449"
+    app:cardCornerRadius="24dp"
     app:cardElevation="0dp"
     app:strokeWidth="1dp"
     app:strokeColor="#29546B">
@@ -24,10 +21,7 @@
 
         android:orientation="vertical"
 
-        android:paddingStart="24dp"
-        android:paddingTop="24dp"
-        android:paddingEnd="24dp"
-        android:paddingBottom="24dp">
+        android:padding="15dp">
 
         <!-- CLASS NAME -->
         <TextView
@@ -40,7 +34,7 @@
 
             android:textColor="#FFFFFF"
 
-            android:textSize="26sp"
+            android:textSize="20sp"
 
             android:textStyle="bold"
 
@@ -53,21 +47,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
 
-            android:text="AIML"
+            android:text="AIML | Sem 5th"
 
             android:textColor="#9EC2D9"
 
-            android:textSize="15sp"
+            android:textSize="13sp"
 
-            android:layout_marginTop="10dp"/>
+            android:layout_marginTop="6dp"/>
 
-        <!-- DIVIDER SPACE -->
+        <!-- DIVIDER -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginTop="18dp"
-            android:layout_marginBottom="18dp"
+
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+
             android:alpha="0.08"
+
             android:background="#FFFFFF"/>
 
         <!-- STUDENTS -->
@@ -81,14 +78,14 @@
 
             android:textColor="#E6F1F7"
 
-            android:textSize="17sp"/>
+            android:textSize="14sp"/>
 
         <!-- PRESENT -->
         <TextView
             android:id="@+id/tvPresent"
 
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="20dp"
 
             android:text="Present: 20"
 
@@ -96,9 +93,9 @@
 
             android:textStyle="bold"
 
-            android:textSize="18sp"
+            android:textSize="15sp"
 
-            android:layout_marginTop="14dp"/>
+            android:layout_marginTop="8dp"/>
 
     </LinearLayout>
 

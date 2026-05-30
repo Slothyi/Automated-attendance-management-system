@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.security import HTTPBearer
+from app.routes import session_routes
 
 # ✅ ROUTES
 from app.routes import (
@@ -47,6 +48,18 @@ app.include_router(
     class_routes.router,
     prefix="/api/class",
     tags=["Class"]
+)
+
+# =========================
+# 📡 SESSION ROUTES
+# =========================
+app.include_router(
+
+    session_routes.router,
+
+    prefix="/api/session",
+
+    tags=["Session"]
 )
 
 # =========================

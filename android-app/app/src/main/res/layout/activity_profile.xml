@@ -4,126 +4,366 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
-    android:fitsSystemWindows="true"
-
-    android:background="#F5F7FA">
+    android:background="@drawable/bg_dashboard_main"
+    android:fillViewport="true">
 
     <LinearLayout
-        android:orientation="vertical"
-        android:padding="20dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="32dp">
 
-        <!-- 👤 NAME -->
-        <TextView
-            android:id="@+id/nameText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Welcome"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="#222222"/>
-
-        <!-- ========================= -->
-        <!-- 🎯 PERCENTAGE + STREAK -->
-        <!-- ========================= -->
-        <com.google.android.material.card.MaterialCardView
+        <!-- ══════════════════════════════ -->
+        <!-- HERO HEADER                   -->
+        <!-- ══════════════════════════════ -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="6dp">
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="64dp"
+            android:paddingBottom="32dp"
+            android:paddingHorizontal="20dp"
+            android:background="@drawable/bg_profile_hero">
+
+            <!-- Back arrow -->
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_arrow"
+                android:rotation="180"
+                android:layout_gravity="start"
+                android:layout_marginBottom="16dp"
+                app:tint="@color/text_primary" />
+
+            <!-- Avatar circle with cyan ring -->
+            <FrameLayout
+                android:layout_width="110dp"
+                android:layout_height="110dp"
+                android:layout_gravity="center">
+
+                <!-- Outer cyan glow ring -->
+                <View
+                    android:layout_width="110dp"
+                    android:layout_height="110dp"
+                    android:background="@drawable/profile_avatar_ring" />
+
+                <!-- Avatar icon -->
+                <ImageView
+                    android:layout_width="94dp"
+                    android:layout_height="94dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_user_avatar"
+                    android:background="@drawable/profile_avatar_bg"
+                    android:padding="16dp" />
+            </FrameLayout>
+
+            <!-- Name -->
+            <TextView
+                android:id="@+id/nameText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Student Name"
+                android:textColor="@color/text_primary"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp" />
+
+            <!-- Role badge -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Student"
+                android:textColor="@color/cyan_accent"
+                android:textSize="13sp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="4dp"
+                android:background="@drawable/profile_role_badge"
+                android:layout_marginTop="8dp" />
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════ -->
+        <!-- STATS ROW                     -->
+        <!-- ══════════════════════════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="20dp">
+
+            <!-- Present card -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="90dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/bg_glass_card_dark"
+                android:layout_marginEnd="8dp">
+
+                <TextView
+                    android:id="@+id/tvPresentCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="@color/present_green"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Present"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <!-- Absent card -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="90dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/bg_glass_card_dark"
+                android:layout_marginHorizontal="4dp">
+
+                <TextView
+                    android:id="@+id/tvAbsentCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="@color/absent_red"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Absent"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <!-- Percentage card -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="90dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/bg_glass_card_dark"
+                android:layout_marginStart="8dp">
+
+                <TextView
+                    android:id="@+id/percentageText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0%"
+                    android:textColor="@color/cyan_accent"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rate"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════ -->
+        <!-- ATTENDANCE PROGRESS CARD      -->
+        <!-- ══════════════════════════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_glass_card_dark"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Attendance Progress"
+                android:textColor="@color/cyan_accent"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <!-- Progress bar row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="12dp">
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="12dp"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/progress_bar_horizontal"
+                    android:max="100" />
+
+                <TextView
+                    android:id="@+id/tvProgressPct"
+                    android:layout_width="48dp"
+                    android:layout_height="wrap_content"
+                    android:text="0%"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:gravity="end"
+                    android:layout_marginStart="12dp" />
+
+            </LinearLayout>
+
+            <!-- Status label -->
+            <TextView
+                android:id="@+id/tvAttendanceLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Keep attending regularly!"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:layout_marginTop="8dp" />
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════ -->
+        <!-- STREAK CARD                   -->
+        <!-- ══════════════════════════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_streak_card"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔥"
+                android:textSize="36sp" />
 
             <LinearLayout
-                android:orientation="horizontal"
-                android:padding="20dp"
-                android:gravity="center_vertical"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="16dp">
 
-                <!-- 🎯 CIRCULAR PROGRESS -->
-                <FrameLayout
-                    android:layout_width="100dp"
-                    android:layout_height="100dp">
-
-                    <!-- Background -->
-                    <ProgressBar
-                        android:id="@+id/progressBg"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:progress="100"
-                        android:progressDrawable="@drawable/circle_bg"/>
-
-                    <!-- Progress -->
-                    <ProgressBar
-                        android:id="@+id/progressBar"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:progress="0"
-                        android:progressDrawable="@drawable/circle_progress"/>
-
-                    <!-- % TEXT -->
-                    <TextView
-                        android:id="@+id/percentageText"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="0%"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="#4CAF50"/>
-
-                </FrameLayout>
-
-                <!-- 🔥 STREAK -->
                 <TextView
                     android:id="@+id/streakText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🔥 0 Day Streak"
-                    android:textSize="18sp"
-                    android:layout_marginStart="30dp"
-                    android:textColor="#FF5722"/>
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- ========================= -->
-        <!-- 📅 CALENDAR -->
-        <!-- ========================= -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="6dp">
-
-            <LinearLayout
-                android:orientation="vertical"
-                android:padding="16dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                    android:text="0 Day Streak"
+                    android:textColor="@color/text_primary"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:text="Last 7 Days"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-
-                <GridLayout
-                    android:id="@+id/calendarGrid"
-                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:columnCount="7"
-                    android:layout_marginTop="16dp"/>
-
+                    android:text="Consecutive days present"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:layout_marginTop="2dp" />
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════ -->
+        <!-- 28-DAY HEATMAP                -->
+        <!-- ══════════════════════════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_glass_card_dark"
+            android:padding="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="Last 28 Days"
+                    android:textColor="@color/cyan_accent"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <!-- Legend -->
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@color/card_border"
+                    android:layout_marginEnd="4dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No class"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp" />
+
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@color/present_green"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="4dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Present"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp" />
+
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@color/absent_red"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="4dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Absent"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <GridLayout
+                android:id="@+id/calendarGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="7"
+                android:layout_marginTop="16dp" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

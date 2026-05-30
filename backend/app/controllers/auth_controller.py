@@ -353,5 +353,9 @@ def login_user(
 
         "name": user["name"],
 
-        "roll": user["roll"]
+        "roll": user["roll"],
+        
+        "class_id": user.get("class_id"),
+        
+        "class_name": user.get("class_name")
     }

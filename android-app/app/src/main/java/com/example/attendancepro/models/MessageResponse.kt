@@ -2,5 +2,7 @@ package com.example.attendancepro.models
 
 data class MessageResponse(
 
-    val message: String
+    val message: String? = null,
+
+    val error: String? = null
 )

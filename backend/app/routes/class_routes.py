@@ -2,6 +2,11 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
 
+from app.config.db import (
+    
+    student_groups_collection
+)
+
 from app.controllers.class_controller import (
 
     create_class,
@@ -10,7 +15,13 @@ from app.controllers.class_controller import (
 
     get_all_classes,
 
-    get_class_students
+    get_class_students,
+    
+    get_student_groups,
+    
+    get_student_group,
+    
+    get_class_calendar
 )
 
 # =========================
@@ -101,7 +112,25 @@ def get_classes():
 
     return get_all_classes()
 
+# =========================
+# 👨‍🎓 GET STUDENT GROUPS
+# =========================
+@router.get("/student-groups")
+def student_groups():
 
+    return get_student_groups()
+
+
+# =========================
+# 👨‍🎓 GET STUDENT GROUP
+# =========================
+@router.get("/student-group/{group_name}")
+def student_group(group_name: str):
+
+    return get_student_group(
+        group_name
+    )
+    
 # =========================
 # 👨‍🎓 GET CLASS STUDENTS
 # =========================
@@ -109,3 +138,12 @@ def get_classes():
 def get_students(class_id: str):
 
     return get_class_students(class_id)
+
+# =========================
+# 📅 GET CLASS CALENDAR
+# =========================
+@router.get("/calendar")
+def calendar():
+
+    return get_class_calendar()
+

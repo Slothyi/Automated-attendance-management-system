@@ -102,7 +102,7 @@ class AttendanceReportActivity : AppCompatActivity() {
 
                             AttendanceReportAdapter(
                                 this@AttendanceReportActivity,
-                                data.report
+                                data.students
                             )
 
                     } else {

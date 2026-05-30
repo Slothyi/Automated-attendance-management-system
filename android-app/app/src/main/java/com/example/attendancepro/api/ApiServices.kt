@@ -82,6 +82,16 @@ interface ApiService {
     @GET("api/class/all")
     fun getAllClasses(): Call<ClassesResponse>
 
+    // =========================
+    // 📚 GET ALL CLASSES
+    // =========================
+    @GET("api/session/active/{class_id}")
+    fun getActiveSession(
+
+        @Path("class_id")
+        classId: String
+
+    ): Call<SessionResponse>
 
     // =========================
     // 👨‍🎓 GET CLASS STUDENTS
@@ -135,7 +145,14 @@ interface ApiService {
         lat: RequestBody,
 
         @Part("lng")
-        lng: RequestBody
+        lng: RequestBody,
+
+        @Part("session_code")
+        sessionCode: RequestBody,
+
+        @Part("session_uuid")
+        sessionUuid: RequestBody
+
 
     ): Call<AttendanceResponse>
 
@@ -145,4 +162,52 @@ interface ApiService {
     // =========================
     @POST("api/attendance/unmark")
     fun unmarkAttendance(): Call<AttendanceResponse>
+
+
+    // =========================
+    // ▶ START SESSION
+    // =========================
+    @POST("api/session/start/{class_id}")
+    fun startSession(
+
+        @Path("class_id")
+        classId: String
+
+    ): Call<SessionResponse>
+
+
+    // =========================
+    // ⏹ STOP SESSION
+    // =========================
+    @POST("api/session/stop/{class_id}")
+    fun stopSession(
+
+        @Path("class_id")
+        classId: String
+
+    ): Call<MessageResponse>
+
+
+    @GET("api/class/student-groups")
+    fun getStudentGroups():
+            Call<StudentGroupsResponse>
+
+
+    @GET("api/class/student-group/{group_name}")
+    fun getStudentGroup(
+
+        @Path("group_name")
+        groupName: String
+
+    ): Call<StudentGroupStudentsResponse>
+
+    @GET("api/class/calendar")
+    fun getCalendarClasses():
+            Call<CalendarResponse>
+            
+    // =========================
+    // 🎓 STUDENT ATTENDED CLASSES
+    // =========================
+    @GET("api/attendance/classes")
+    fun getStudentClasses(): Call<StudentClassesResponse>
 }

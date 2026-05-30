@@ -5,7 +5,7 @@
 
     <gradient
         android:type="sweep"
-        android:startColor="#4CAF50"
-        android:centerColor="#81C784"
-        android:endColor="#2E7D32"/>
+        android:startColor="@color/cyan_accent"
+        android:centerColor="@color/mark_btn_gradient_start"
+        android:endColor="@color/mark_btn_gradient_end"/>
 </shape>

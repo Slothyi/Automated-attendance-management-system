@@ -84,7 +84,11 @@ def mark(
     lat: float = Form(...),
 
     lng: float = Form(...),
+    
+    session_code: str = Form(...),
 
+    session_uuid: str = Form(...),
+    
     file: UploadFile = File(...),
 
     user: dict = Depends(get_current_user)
@@ -100,7 +104,11 @@ def mark(
             lat,
 
             lng,
-
+            
+            session_code,
+            
+            session_uuid,
+            
             file
         )
 
@@ -199,6 +207,35 @@ def history(
             detail="Internal server error"
         )
 
+# =========================
+# 🔑 ADMIN USER DEPENDENCY
+# =========================    
+def get_admin_user(
+
+    credentials:
+    HTTPAuthorizationCredentials = Depends(security)
+
+):
+
+    token = credentials.credentials
+
+    user = verify_token(token)
+
+    if not user:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token"
+        )
+
+    if user.get("role") != "admin":
+
+        raise HTTPException(
+            status_code=403,
+            detail="Admin access required"
+        )
+
+    return user
 
 # =========================
 # 📊 CLASS ATTENDANCE REPORT
@@ -208,7 +245,7 @@ def class_report(
 
     class_id: str,
 
-    user: dict = Depends(get_current_user)
+    user: dict = Depends(get_admin_user)
 
 ):
 
@@ -226,5 +263,22 @@ def class_report(
 
             status_code=500,
 
+            detail="Internal server error"
+        )
+    
+# =========================
+# 🎓 ATTENDED CLASSES
+# =========================
+@router.get("/classes")
+def student_classes(
+    user: dict = Depends(get_current_user)
+):
+    try:
+        from app.controllers.attendance_controller import get_student_classes
+        return get_student_classes(user["id"])
+    except Exception as e:
+        print("❌ ERROR:", str(e))
+        raise HTTPException(
+            status_code=500,
             detail="Internal server error"
         )

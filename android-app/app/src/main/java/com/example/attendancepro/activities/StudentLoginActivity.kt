@@ -231,7 +231,13 @@ class StudentLoginActivity : AppCompatActivity() {
 
                             loginResponse.name ?: ""
                         )
+                        sessionManager.saveLatestClassId(
+                            loginResponse.class_id ?: ""
+                        )
 
+                        sessionManager.saveLatestClassName(
+                            loginResponse.class_name ?: ""
+                        )
                         // =========================
                         // ✅ SUCCESS MESSAGE
                         // =========================

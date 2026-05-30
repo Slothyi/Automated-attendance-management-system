@@ -1,122 +1,459 @@
 package com.example.attendancepro.activities
 
+import android.graphics.Color
 import android.os.Bundle
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+
+import com.example.attendancepro.adapters.GroupSpinnerAdapter
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
+
 import com.example.attendancepro.R
 import com.example.attendancepro.api.RetrofitClient
 import com.example.attendancepro.models.AddStudentsRequest
 import com.example.attendancepro.models.MessageResponse
 import com.example.attendancepro.models.StudentData
+import com.example.attendancepro.models.StudentGroupsResponse
+import com.example.attendancepro.models.StudentGroupStudentsResponse
+import com.example.attendancepro.utils.SessionManager
+
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-import android.graphics.Color
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
-
 class AddStudentsActivity : AppCompatActivity() {
 
-    // ✅ CLASS NAME DISPLAY
+    // =========================
+    // CLASS INFO
+    // =========================
     private lateinit var tvClassName: TextView
 
-    // ✅ STUDENT INPUTS
+    // =========================
+    // STUDENT INPUTS
+    // =========================
     private lateinit var etStudentName: EditText
     private lateinit var etStudentRoll: EditText
 
-    // ✅ BUTTONS
+    // =========================
+    // BUTTONS
+    // =========================
     private lateinit var btnAddStudent: Button
     private lateinit var btnFinish: Button
 
-    // ✅ CLASS DATA
+    // =========================
+    // IMPORT GROUP
+    // =========================
+    private lateinit var spinnerGroups: Spinner
+    private lateinit var btnImportGroup: Button
+
+    // =========================
+    // CLASS DATA
+    // =========================
     private var classId: String = ""
     private var className: String = ""
 
+    private lateinit var sessionManager: SessionManager
+
+    private var groupNames =
+        mutableListOf<String>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
 
+        WindowCompat.setDecorFitsSystemWindows(
+            window,
+            false
+        )
 
-        // EDGE TO EDGE
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor =
+            Color.TRANSPARENT
 
-        // TRANSPARENT STATUS BAR
-        window.statusBarColor = Color.TRANSPARENT
-
-        // WHITE STATUS BAR ICONS
         val controller =
             WindowInsetsControllerCompat(
                 window,
                 window.decorView
             )
 
-        controller.isAppearanceLightStatusBars = false
+        controller.isAppearanceLightStatusBars =
+            false
 
-        setContentView(R.layout.activity_add_students)
+        setContentView(
+            R.layout.activity_add_students
+        )
 
-        // ✅ VIEW BINDING
-        tvClassName = findViewById(R.id.tvClassName)
+        // =========================
+        // VIEWS
+        // =========================
+        tvClassName =
+            findViewById(R.id.tvClassName)
 
-        etStudentName = findViewById(R.id.etStudentName)
+        etStudentName =
+            findViewById(R.id.etStudentName)
 
-        etStudentRoll = findViewById(R.id.etStudentRoll)
+        etStudentRoll =
+            findViewById(R.id.etStudentRoll)
 
-        btnAddStudent = findViewById(R.id.btnAddStudent)
+        btnAddStudent =
+            findViewById(R.id.btnAddStudent)
 
-        btnFinish = findViewById(R.id.btnFinish)
+        btnFinish =
+            findViewById(R.id.btnFinish)
 
-        // ✅ GET CLASS DATA
-        classId = intent.getStringExtra(
-            "CLASS_ID"
-        ) ?: ""
+        spinnerGroups =
+            findViewById(R.id.spinnerGroups)
 
-        className = intent.getStringExtra(
-            "CLASS_NAME"
-        ) ?: ""
+        btnImportGroup =
+            findViewById(R.id.btnImportGroup)
 
-        // ✅ SHOW CLASS NAME
-        tvClassName.text = className
+        sessionManager =
+            SessionManager(this)
 
-        // ✅ ADD STUDENT
+        // =========================
+        // INTENT DATA
+        // =========================
+        classId =
+            intent.getStringExtra(
+                "CLASS_ID"
+            )?.trim() ?: ""
+
+        className =
+            intent.getStringExtra(
+                "CLASS_NAME"
+            )?.trim() ?: ""
+
+        if (classId.isNotBlank()) {
+
+            sessionManager.saveLatestClassId(
+                classId
+            )
+        }
+
+        if (className.isNotBlank()) {
+
+            sessionManager.saveLatestClassName(
+                className
+            )
+        }
+
+        tvClassName.text =
+            className
+
+        // =========================
+        // LOAD GROUPS
+        // =========================
+        loadStudentGroups()
+
+        // =========================
+        // ADD STUDENT
+        // =========================
         btnAddStudent.setOnClickListener {
 
             addStudent()
         }
 
-        // ✅ FINISH BUTTON
+        // =========================
+        // IMPORT GROUP
+        // =========================
+        btnImportGroup.setOnClickListener {
+
+            if (groupNames.isEmpty()) {
+
+                Toast.makeText(
+                    this,
+                    "No saved groups found",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                return@setOnClickListener
+            }
+
+            val groupName =
+                spinnerGroups.selectedItem
+                    .toString()
+
+            importGroupStudents(
+
+                groupName
+
+            )
+        }
+
+        // =========================
+        // FINISH
+        // =========================
         btnFinish.setOnClickListener {
 
             finish()
         }
     }
 
+    // =========================
+    // LOAD SAVED GROUPS
+    // =========================
+    private fun loadStudentGroups() {
+
+        RetrofitClient.instance
+
+            .getStudentGroups()
+
+            .enqueue(
+                object :
+                    Callback<StudentGroupsResponse> {
+
+                    override fun onResponse(
+
+                        call:
+                        Call<StudentGroupsResponse>,
+
+                        response:
+                        Response<StudentGroupsResponse>
+
+                    ) {
+
+                        if (
+                            response.isSuccessful &&
+                            response.body() != null
+                        ) {
+
+                            groupNames.clear()
+
+                            response.body()?.groups?.forEach {
+
+                                groupNames.add(
+                                    it.group_name
+                                )
+                            }
+
+                            val adapter = GroupSpinnerAdapter(
+                                this@AddStudentsActivity,
+                                groupNames
+                            )
+
+                            spinnerGroups.adapter = adapter
+                        }
+                    }
+
+                    override fun onFailure(
+
+                        call:
+                        Call<StudentGroupsResponse>,
+
+                        t: Throwable
+
+                    ) {
+
+                    }
+                }
+            )
+    }
+
+    // =========================
+    // IMPORT STUDENTS
+    // =========================
+    private fun importGroupStudents(
+        groupName: String
+    ) {
+
+        if (!hasSelectedClass()) {
+
+            return
+        }
+
+        RetrofitClient.instance
+
+            .getStudentGroup(groupName)
+
+            .enqueue(
+                object :
+                    Callback<StudentGroupStudentsResponse> {
+
+                    override fun onResponse(
+
+                        call:
+                        Call<StudentGroupStudentsResponse>,
+
+                        response:
+                        Response<StudentGroupStudentsResponse>
+
+                    ) {
+
+                        if (
+                            response.isSuccessful &&
+                            response.body() != null
+                        ) {
+
+                            val students =
+                                response.body()!!
+                                    .students
+
+                            if (
+                                students.isEmpty()
+                            ) {
+
+                                Toast.makeText(
+                                    this@AddStudentsActivity,
+                                    "No students found",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+
+                                return
+                            }
+
+                            val request =
+                                AddStudentsRequest(
+
+                                    class_id =
+                                        classId,
+
+                                    students =
+                                        students
+                                )
+
+                            RetrofitClient.instance
+
+                                .addStudents(
+                                    request
+                                )
+
+                                .enqueue(
+                                    object :
+                                        Callback<MessageResponse> {
+
+                                        override fun onResponse(
+
+                                            call:
+                                            Call<MessageResponse>,
+
+                                            response:
+                                            Response<MessageResponse>
+
+                                        ) {
+
+                                            if (response.isSuccessful) {
+
+                                                val body =
+                                                    response.body()
+
+                                                Toast.makeText(
+
+                                                    this@AddStudentsActivity,
+
+                                                    body?.message
+                                                        ?: body?.error
+                                                        ?: "Import completed",
+
+                                                    Toast.LENGTH_LONG
+
+                                                ).show()
+
+                                            } else {
+
+                                                Toast.makeText(
+
+                                                    this@AddStudentsActivity,
+
+                                                    "Import Failed : ${response.code()}",
+
+                                                    Toast.LENGTH_LONG
+
+                                                ).show()
+                                            }
+                                        }
+
+                                        override fun onFailure(
+
+                                            call:
+                                            Call<MessageResponse>,
+
+                                            t: Throwable
+
+                                        ) {
+
+                                            Toast.makeText(
+
+                                                this@AddStudentsActivity,
+
+                                                t.message,
+
+                                                Toast.LENGTH_LONG
+
+                                            ).show()
+                                        }
+                                    }
+                                )
+                        }
+                    }
+
+                    override fun onFailure(
+
+                        call:
+                        Call<StudentGroupStudentsResponse>,
+
+                        t: Throwable
+
+                    ) {
+
+                        Toast.makeText(
+
+                            this@AddStudentsActivity,
+
+                            t.message,
+
+                            Toast.LENGTH_LONG
+
+                        ).show()
+                    }
+                }
+            )
+    }
+
+    // =========================
+    // ADD SINGLE STUDENT
+    // =========================
     private fun addStudent() {
 
+        if (!hasSelectedClass()) {
+
+            return
+        }
+
         val studentName =
-            etStudentName.text.toString().trim()
+
+            etStudentName.text
+                .toString()
+                .trim()
 
         val studentRoll =
-            etStudentRoll.text.toString().trim()
 
-        // ✅ VALIDATION
+            etStudentRoll.text
+                .toString()
+                .trim()
+
         if (
             studentName.isEmpty() ||
             studentRoll.isEmpty()
         ) {
 
             Toast.makeText(
+
                 this,
+
                 "Fill all fields",
+
                 Toast.LENGTH_SHORT
+
             ).show()
 
             return
         }
 
-        // ✅ CREATE STUDENT OBJECT
         val student = StudentData(
 
             name = studentName,
@@ -124,65 +461,95 @@ class AddStudentsActivity : AppCompatActivity() {
             roll = studentRoll
         )
 
-        // ✅ CREATE REQUEST
-        val request = AddStudentsRequest(
+        val request =
+            AddStudentsRequest(
 
-            class_id = classId,
+                class_id = classId,
 
-            students = listOf(student)
-        )
+                students = listOf(student)
+            )
 
         RetrofitClient.instance
 
             .addStudents(request)
 
-            .enqueue(object : Callback<MessageResponse> {
+            .enqueue(
+                object :
+                    Callback<MessageResponse> {
 
-                override fun onResponse(
-                    call: Call<MessageResponse>,
-                    response: Response<MessageResponse>
-                ) {
+                    override fun onResponse(
 
-                    if (
-                        response.isSuccessful &&
-                        response.body() != null
+                        call:
+                        Call<MessageResponse>,
+
+                        response:
+                        Response<MessageResponse>
+
+                    ) {
+
+                        if (response.isSuccessful) {
+
+                            val body =
+                                response.body()
+
+                            Toast.makeText(
+                                this@AddStudentsActivity,
+                                body?.message
+                                    ?: body?.error
+                                    ?: "Done",
+                                Toast.LENGTH_LONG
+                            ).show()
+
+                            etStudentName.text.clear()
+                            etStudentRoll.text.clear()
+                            etStudentName.requestFocus()
+
+                        } else {
+
+                            Toast.makeText(
+                                this@AddStudentsActivity,
+                                "Error: ${response.code()}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+
+                    override fun onFailure(
+
+                        call:
+                        Call<MessageResponse>,
+
+                        t: Throwable
+
                     ) {
 
                         Toast.makeText(
+
                             this@AddStudentsActivity,
-                            "Student Added Successfully",
-                            Toast.LENGTH_SHORT
-                        ).show()
 
-                        // ✅ CLEAR INPUTS
-                        etStudentName.text.clear()
+                            t.message,
 
-                        etStudentRoll.text.clear()
+                            Toast.LENGTH_LONG
 
-                        // ✅ FOCUS AGAIN
-                        etStudentName.requestFocus()
-
-                    } else {
-
-                        Toast.makeText(
-                            this@AddStudentsActivity,
-                            "Failed To Add Student",
-                            Toast.LENGTH_SHORT
                         ).show()
                     }
                 }
+            )
+    }
 
-                override fun onFailure(
-                    call: Call<MessageResponse>,
-                    t: Throwable
-                ) {
+    private fun hasSelectedClass(): Boolean {
 
-                    Toast.makeText(
-                        this@AddStudentsActivity,
-                        t.message,
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            })
+        if (classId.isNotBlank()) {
+
+            return true
+        }
+
+        Toast.makeText(
+            this,
+            "Select a class first",
+            Toast.LENGTH_LONG
+        ).show()
+
+        return false
     }
 }
