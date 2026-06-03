@@ -37,8 +37,8 @@ from app.controllers.session_controller import (
 # =========================
 # 📍 COLLEGE LOCATION
 # =========================
-COLLEGE_LAT = 23.526485
-COLLEGE_LNG = 87.742550
+COLLEGE_LAT = 22.575698
+COLLEGE_LNG = 88.427682
 
 # =========================
 # 🔥 FACE MATCH THRESHOLD
@@ -637,3 +637,4 @@ def get_student_classes(user_id):
         "success": True,
         "classes": classes_list
     }
+
