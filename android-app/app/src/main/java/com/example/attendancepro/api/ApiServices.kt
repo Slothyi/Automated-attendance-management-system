@@ -12,6 +12,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiService {
 
@@ -55,7 +56,26 @@ interface ApiService {
         @Part
         file: MultipartBody.Part
 
-    ): Call<Map<String, String>>
+    ): Call<Map<String, Any>>
+
+
+    // =========================
+    // 📧 SEND VERIFICATION EMAIL
+    // =========================
+    @POST("api/auth/send-verification-email")
+    fun sendVerificationEmail(
+        @Query("email") email: String
+    ): Call<Map<String, Any>>
+
+
+    // =========================
+    // 📧 CHECK VERIFICATION STATUS
+    // =========================
+    @GET("api/auth/check-verification-status")
+    fun checkVerificationStatus(
+        @Query("email") email: String
+    ): Call<Map<String, Any>>
+
 
 
     // =========================
@@ -80,7 +100,9 @@ interface ApiService {
     // 📚 GET ALL CLASSES
     // =========================
     @GET("api/class/all")
-    fun getAllClasses(): Call<ClassesResponse>
+    fun getAllClasses(
+        @Query("admin_id") adminId: String = ""
+    ): Call<ClassesResponse>
 
     // =========================
     // 📚 GET ALL CLASSES
@@ -151,10 +173,24 @@ interface ApiService {
         sessionCode: RequestBody,
 
         @Part("session_uuid")
-        sessionUuid: RequestBody
+        sessionUuid: RequestBody,
 
+        @Part("classroom_beacon")
+        classroomBeacon: RequestBody? = null,
+
+        @Part("otp_code")
+        otpCode: RequestBody? = null
 
     ): Call<AttendanceResponse>
+
+
+    // =========================
+    // ✍ MANUAL ATTENDANCE OVERRIDE
+    // =========================
+    @POST("api/attendance/manual_update")
+    fun updateManualAttendance(
+        @Body request: com.example.attendancepro.models.ManualAttendanceRequest
+    ): Call<com.example.attendancepro.models.MessageResponse>
 
 
     // =========================
@@ -171,7 +207,10 @@ interface ApiService {
     fun startSession(
 
         @Path("class_id")
-        classId: String
+        classId: String,
+
+        @Query("classroom_beacon")
+        classroomBeacon: String? = null
 
     ): Call<SessionResponse>
 
@@ -210,4 +249,13 @@ interface ApiService {
     // =========================
     @GET("api/attendance/classes")
     fun getStudentClasses(): Call<StudentClassesResponse>
+
+
+    // =========================
+    // 🔑 RESET PASSWORD
+    // =========================
+    @POST("api/auth/reset-password")
+    fun resetPassword(
+        @Body request: ResetPasswordRequest
+    ): Call<Map<String, Any>>
 }

@@ -8,5 +8,7 @@ data class AdminLoginResponse(
 
     val error: String? = null,
 
-    val email: String? = null
+    val email: String? = null,
+
+    val admin_id: String? = null
 )

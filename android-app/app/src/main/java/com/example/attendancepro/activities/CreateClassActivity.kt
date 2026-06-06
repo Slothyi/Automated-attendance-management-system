@@ -171,7 +171,7 @@ class CreateClassActivity : AppCompatActivity() {
 
             semester = semester,
 
-            admin_id = "admin123"
+            admin_id = sessionManager.getAdminId() ?: ""
         )
 
         // =========================

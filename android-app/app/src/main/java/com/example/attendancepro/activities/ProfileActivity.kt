@@ -9,8 +9,17 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import android.graphics.drawable.Drawable
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.example.attendancepro.R
 import com.example.attendancepro.api.RetrofitClient
 import com.example.attendancepro.models.AttendanceHistoryResponse
@@ -32,6 +41,7 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var streakText: TextView
     private lateinit var grid: GridLayout
+    private lateinit var profileAvatar: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +53,14 @@ class ProfileActivity : AppCompatActivity() {
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
 
         setContentView(R.layout.activity_profile)
+        
+        // Fix for root layout overlap with system navigation bar
+        val rootLayout = findViewById<android.view.View>(android.R.id.content)
+        ViewCompat.setOnApplyWindowInsetsListener(rootLayout) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, systemBars.bottom)
+            insets
+        }
 
         // Back
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
@@ -57,9 +75,48 @@ class ProfileActivity : AppCompatActivity() {
         progressBar        = findViewById(R.id.progressBar)
         streakText         = findViewById(R.id.streakText)
         grid               = findViewById(R.id.calendarGrid)
+        profileAvatar      = findViewById(R.id.profileAvatar)
 
         val session = SessionManager(this)
         nameText.text = session.getName() ?: "Student"
+
+        // Load profile image from backend
+        val email = session.getEmail()
+        if (!email.isNullOrEmpty()) {
+            val imageUrl = "${RetrofitClient.BASE_URL}uploads/${email.lowercase().trim()}_register.jpg"
+            Glide.with(this)
+                .load(imageUrl)
+                .placeholder(R.drawable.ic_user_avatar)
+                .error(R.drawable.ic_user_avatar)
+                .listener(object : RequestListener<Drawable> {
+                    override fun onLoadFailed(
+                        e: GlideException?,
+                        model: Any?,
+                        target: Target<Drawable>,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        val density = resources.displayMetrics.density
+                        val pad = (16 * density).toInt()
+                        profileAvatar.setPadding(pad, pad, pad, pad)
+                        profileAvatar.scaleType = ImageView.ScaleType.FIT_CENTER
+                        return false
+                    }
+
+                    override fun onResourceReady(
+                        resource: Drawable,
+                        model: Any,
+                        target: Target<Drawable>?,
+                        dataSource: DataSource,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        profileAvatar.setPadding(0, 0, 0, 0)
+                        profileAvatar.scaleType = ImageView.ScaleType.CENTER_CROP
+                        return false
+                    }
+                })
+                .transform(CircleCrop())
+                .into(profileAvatar)
+        }
 
         loadHistory()
     }

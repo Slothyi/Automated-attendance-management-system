@@ -271,6 +271,7 @@
                                         android:textSize="18sp"
                                         android:textStyle="bold" />
                                     <TextView
+                                        android:id="@+id/tvMarkSubtitle"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="Verify &amp; mark your attendance"

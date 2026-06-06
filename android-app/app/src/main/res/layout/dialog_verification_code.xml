@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp">
+
+    <EditText
+        android:id="@+id/etVerificationCode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter 5-digit hex code"
+        android:textColor="@color/black"
+        android:textColorHint="#888888"
+        android:gravity="center"
+        android:textSize="20sp"
+        android:inputType="textCapCharacters"
+        android:maxLength="5"
+        android:backgroundTint="@color/black"
+        android:padding="16dp" />
+</FrameLayout>

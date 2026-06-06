@@ -14,6 +14,8 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -35,6 +37,7 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var markBtnContainer: LinearLayout
     private lateinit var tvMarkTitle: TextView
+    private lateinit var tvMarkSubtitle: TextView
     private lateinit var userName: TextView
     private lateinit var profileName: TextView
     
@@ -52,6 +55,7 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var successAnim: LottieAnimationView
 
     private val handler = Handler(Looper.getMainLooper())
+    private var countDownTimer: android.os.CountDownTimer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,6 +72,13 @@ class DashboardActivity : AppCompatActivity() {
         initViews()
         setupDrawer()
         setupBottomNavigation()
+        
+        // Fix for bottom navigation overlap with system navigation bar
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.bottomNav)) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, systemBars.bottom + (10 * resources.displayMetrics.density).toInt())
+            insets
+        }
         
         val session = SessionManager(this)
         userName.text = "${session.getName()} 👋"
@@ -93,6 +104,7 @@ class DashboardActivity : AppCompatActivity() {
         drawerLayout = findViewById(R.id.drawerLayout)
         markBtnContainer = findViewById(R.id.markBtnContainer)
         tvMarkTitle = findViewById(R.id.tvMarkTitle)
+        tvMarkSubtitle = findViewById(R.id.tvMarkSubtitle)
         userName = findViewById(R.id.userName)
         profileName = findViewById(R.id.profileName)
         
@@ -147,8 +159,31 @@ class DashboardActivity : AppCompatActivity() {
                 if (response.isSuccessful && res != null) {
                     val historyList = res.history
                     
-                    // Populate Recycler View (Max 3 items)
-                    val recentItems = historyList.take(3)
+                    // Populate Recycler View (Max 3 items, within 10 hours)
+                    val recentItems = historyList.filter { item ->
+                        var isRecent = false
+                        if (item.time != null) {
+                            try {
+                                var timeStr = item.time
+                                if (timeStr.contains(".")) {
+                                    timeStr = timeStr.substringBefore(".")
+                                } else if (timeStr.contains("+")) {
+                                    timeStr = timeStr.substringBefore("+")
+                                }
+                                val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+                                sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                                val date = sdf.parse(timeStr)
+                                if (date != null) {
+                                    val diff = System.currentTimeMillis() - date.time
+                                    val hoursDiff = diff / (1000 * 60 * 60)
+                                    isRecent = hoursDiff <= 10
+                                }
+                            } catch (e: Exception) {
+                                isRecent = false
+                            }
+                        }
+                        isRecent
+                    }.take(3)
                     rvRecentAttendance.adapter = RecentAttendanceAdapter(recentItems)
                     
                     // Calculate Stats
@@ -177,23 +212,57 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private fun checkCooldownOnStart() {
+        countDownTimer?.cancel()
+        countDownTimer = null
+
         RetrofitClient.instance.getStatus().enqueue(object : Callback<AttendanceResponse> {
             override fun onResponse(call: Call<AttendanceResponse>, response: Response<AttendanceResponse>) {
                 val res = response.body()
-                if (res?.status.equals("Present", ignoreCase = true)) {
-                    tvMarkTitle.text = "Already Marked"
+                val remainingSec = res?.remaining_seconds ?: 0
+
+                if (remainingSec > 0) {
                     markBtnContainer.isEnabled = false
                     markBtnContainer.alpha = 0.5f
+                    tvMarkTitle.text = "Cooldown Active"
+
+                    countDownTimer = object : android.os.CountDownTimer(remainingSec * 1000L, 1000L) {
+                        override fun onTick(millisUntilFinished: Long) {
+                            val totalSeconds = millisUntilFinished / 1000
+                            val minutes = totalSeconds / 60
+                            val seconds = totalSeconds % 60
+                            tvMarkSubtitle.text = String.format("Next mark in %02d:%02d", minutes, seconds)
+                        }
+
+                        override fun onFinish() {
+                            markBtnContainer.isEnabled = true
+                            markBtnContainer.alpha = 1.0f
+                            tvMarkTitle.text = "Mark Attendance"
+                            tvMarkSubtitle.text = "Verify & mark your attendance"
+                        }
+                    }.start()
                 } else {
-                    tvMarkTitle.text = "Mark Attendance"
-                    markBtnContainer.isEnabled = true
-                    markBtnContainer.alpha = 1.0f
+                    if (res?.status.equals("Present", ignoreCase = true)) {
+                        tvMarkTitle.text = "Already Marked"
+                        tvMarkSubtitle.text = "Verify & mark your attendance"
+                        markBtnContainer.isEnabled = false
+                        markBtnContainer.alpha = 0.5f
+                    } else {
+                        tvMarkTitle.text = "Mark Attendance"
+                        tvMarkSubtitle.text = "Verify & mark your attendance"
+                        markBtnContainer.isEnabled = true
+                        markBtnContainer.alpha = 1.0f
+                    }
                 }
             }
             override fun onFailure(call: Call<AttendanceResponse>, t: Throwable) {
                 // Ignore
             }
         })
+    }
+
+    override fun onDestroy() {
+        countDownTimer?.cancel()
+        super.onDestroy()
     }
 
     // Optional: Keep Lottie logic if needed for any reason, although actual attendance marking is now in AttendanceActivity

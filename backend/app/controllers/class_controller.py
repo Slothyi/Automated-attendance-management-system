@@ -407,8 +407,11 @@ def get_student_group(group_name):
 # =========================
 # 📋 GET ALL CLASSES
 # =========================
-def get_all_classes():
-    classes = classes_collection.find({"expires_at": {"$gt": datetime.now(timezone.utc)}})
+def get_all_classes(admin_id: str = None):
+    query = {"expires_at": {"$gt": datetime.now(timezone.utc)}}
+    if admin_id:
+        query["created_by"] = admin_id
+    classes = classes_collection.find(query)
     class_list = []
     for c in classes:
         class_students = list(students_collection.find({"class_id": str(c["_id"])}))
@@ -582,17 +585,20 @@ def student_exists(
     name,
     roll
 ):
+    normalized_name = str(name).strip()
+    normalized_roll = str(roll).strip()
+    
     existing_student = students_collection.find_one({
 
         "name": {
 
             "$regex":
-                f"^{name}$",
+                f"^{normalized_name}$",
 
             "$options": "i"
         },
 
-        "roll": roll
+        "roll": normalized_roll
     })
 
     return existing_student is not None

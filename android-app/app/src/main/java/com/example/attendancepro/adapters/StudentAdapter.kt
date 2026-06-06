@@ -20,6 +20,16 @@ class StudentAdapter(
 
 ) : RecyclerView.Adapter<StudentAdapter.ViewHolder>() {
 
+    interface OnStatusChangeListener {
+        fun onStatusChanged()
+    }
+
+    private var statusChangeListener: OnStatusChangeListener? = null
+
+    fun setOnStatusChangeListener(listener: OnStatusChangeListener) {
+        statusChangeListener = listener
+    }
+
     class ViewHolder(view: View)
         : RecyclerView.ViewHolder(view) {
 
@@ -78,39 +88,33 @@ class StudentAdapter(
         // =========================
         // ✅ STATUS
         // =========================
-        val status =
+        fun updateStatusUI() {
+            val status = item.attendance_status ?: "Absent"
+            holder.tvStatus.text = status
 
-            item.attendance_status
-                ?: "Absent"
+            if (status.equals("Present", ignoreCase = true)) {
+                holder.tvStatus.setTextColor(Color.GREEN)
+            } else {
+                holder.tvStatus.setTextColor(Color.RED)
+            }
+        }
+        
+        updateStatusUI()
 
-        holder.tvStatus.text =
-            status
-
-        // =========================
-        // 🎨 STATUS COLOR
-        // =========================
-        if (
-
-            status.equals(
-                "Present",
-                ignoreCase = true
-            )
-        ) {
-
-            holder.tvStatus.setTextColor(
-                Color.GREEN
-            )
-
-        } else {
-
-            holder.tvStatus.setTextColor(
-                Color.RED
-            )
+        // Toggle Status on Click
+        holder.tvStatus.setOnClickListener {
+            val currentStatus = item.attendance_status ?: "Absent"
+            if (currentStatus.equals("Present", ignoreCase = true)) {
+                item.attendance_status = "Absent"
+            } else {
+                item.attendance_status = "Present"
+            }
+            updateStatusUI()
+            statusChangeListener?.onStatusChanged()
         }
     }
 
     override fun getItemCount(): Int {
-
         return list.size
     }
 }

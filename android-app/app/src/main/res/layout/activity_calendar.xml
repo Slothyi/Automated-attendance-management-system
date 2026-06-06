@@ -22,7 +22,8 @@
             android:id="@+id/calendarView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@android:color/transparent"/>
+            android:background="@android:color/transparent"
+            android:theme="@style/CalendarDarkTheme"/>
 
     </com.google.android.material.card.MaterialCardView>
 

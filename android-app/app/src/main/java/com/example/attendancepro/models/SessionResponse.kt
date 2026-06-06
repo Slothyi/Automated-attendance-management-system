@@ -10,5 +10,9 @@ data class SessionResponse(
 
     val session_uuid: String? = null,
 
-    val bluetooth_name: String? = null
+    val bluetooth_name: String? = null,
+
+    val classroom_beacon: String? = null,
+
+    val otp_code: String? = null
 )

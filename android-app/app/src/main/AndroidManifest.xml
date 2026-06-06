@@ -126,6 +126,17 @@
             android:name=".activities.RegisterActivity"
             android:exported="false"/>
 
+        <!-- 🔑 FORGOT PASSWORD -->
+        <activity
+            android:name=".activities.ForgotPasswordActivity"
+            android:exported="false"/>
+
+        <!-- 🛡️ LIVENESS DETECTION -->
+        <activity
+            android:name=".activities.LivenessDetectionActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"/>
+
         <!-- OPTIONAL -->
         <activity
             android:name=".activities.MainActivity"

@@ -101,6 +101,18 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <!-- FORGOT PASSWORD -->
+                <TextView
+                    android:id="@+id/tvForgotPassword"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="8dp"
+                    android:text="Forgot password?"
+                    android:textColor="#1976D2"
+                    android:textSize="13sp"
+                    android:paddingStart="2dp"/>
+
                 <!-- LOGIN BUTTON -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnLogin"

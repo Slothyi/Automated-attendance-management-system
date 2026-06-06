@@ -5,6 +5,8 @@ import android.view.View
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -38,6 +40,13 @@ class StudentClassesActivity : AppCompatActivity() {
         toolbar.setNavigationOnClickListener { finish() }
 
         rvClasses = findViewById(R.id.rvClasses)
+        
+        // Fix for recycler view overlap with system navigation bar
+        ViewCompat.setOnApplyWindowInsetsListener(rvClasses) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, systemBars.bottom + (20 * resources.displayMetrics.density).toInt())
+            insets
+        }
         progressBar = findViewById(R.id.progressBar)
 
         rvClasses.layoutManager = LinearLayoutManager(this)

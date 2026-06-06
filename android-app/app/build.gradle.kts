@@ -34,6 +34,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
 }
 
 dependencies {
@@ -54,4 +60,16 @@ dependencies {
     implementation("com.airbnb.android:lottie:6.4.0")
     implementation("nl.dionsegijn:konfetti-xml:2.0.2")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+    
+    // CameraX
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    
+    // ML Kit Face Detection
+    implementation(libs.mlkit.face.detection)
+
+    // Glide for image loading
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 }

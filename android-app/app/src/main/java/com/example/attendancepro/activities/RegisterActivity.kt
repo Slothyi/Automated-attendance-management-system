@@ -46,6 +46,12 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var captureBtn: Button
     private lateinit var registerBtn: Button
     private lateinit var selfiePreview: ImageView
+    private lateinit var btnVerifyEmail: TextView
+    private lateinit var ivVerifiedTick: ImageView
+
+    private var isEmailVerified = false
+    private val pollingHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var pollingRunnable: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +92,17 @@ class RegisterActivity : AppCompatActivity() {
         captureBtn = findViewById(R.id.captureBtn)
         registerBtn = findViewById(R.id.registerBtn)
         selfiePreview = findViewById(R.id.selfiePreview)
+        btnVerifyEmail = findViewById(R.id.btnVerifyEmail)
+        ivVerifiedTick = findViewById(R.id.ivVerifiedTick)
+
+        btnVerifyEmail.setOnClickListener {
+            val emailText = email.text.toString().trim()
+            if (emailText.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(emailText).matches()) {
+                Toast.makeText(this, "Enter a valid email address", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            sendVerificationEmail(emailText)
+        }
 
         captureBtn.setOnClickListener {
             checkCameraPermission()
@@ -130,33 +147,21 @@ class RegisterActivity : AppCompatActivity() {
     // OPEN CAMERA
     // =========================
     private fun openCamera() {
-
-        imageFile = File(getExternalFilesDir(null), "register_${System.currentTimeMillis()}.jpg")
-
-        photoUri = FileProvider.getUriForFile(
-            this,
-            "${packageName}.provider",
-            imageFile
-        )
-
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
-        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-
-        cameraLauncher.launch(intent)
+        val intent = Intent(this, LivenessDetectionActivity::class.java)
+        livenessLauncher.launch(intent)
     }
 
-    private val cameraLauncher =
+    private val livenessLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-
-            if (result.resultCode == Activity.RESULT_OK && imageFile.exists()) {
-
-                val fixedBitmap = fixRotation(imageFile)
-                overwriteImage(fixedBitmap, imageFile)
-
-                selfiePreview.setImageBitmap(fixedBitmap)
-
-                Toast.makeText(this, "Photo captured", Toast.LENGTH_SHORT).show()
+            if (result.resultCode == Activity.RESULT_OK) {
+                val path = result.data?.getStringExtra("photo_path")
+                if (!path.isNullOrEmpty()) {
+                    imageFile = File(path)
+                    val fixedBitmap = fixRotation(imageFile)
+                    overwriteImage(fixedBitmap, imageFile)
+                    selfiePreview.setImageBitmap(fixedBitmap)
+                    Toast.makeText(this, "Liveness verified & photo captured", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
@@ -206,8 +211,20 @@ class RegisterActivity : AppCompatActivity() {
     // =========================
     private fun registerUser() {
 
+        if (!isEmailVerified) {
+            Toast.makeText(this, "Please verify your email first", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         if (!::imageFile.isInitialized) {
             Toast.makeText(this, "Capture photo first", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val emailInput = email.text.toString().trim()
+
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(emailInput).matches()) {
+            Toast.makeText(this, "Enter a valid email address", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -217,18 +234,18 @@ class RegisterActivity : AppCompatActivity() {
 
         val nameBody = name.text.toString().toRequestBody("text/plain".toMediaTypeOrNull())
         val rollBody = roll.text.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-        val emailBody = email.text.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+        val emailBody = emailInput.toRequestBody("text/plain".toMediaTypeOrNull())
         val passBody = password.text.toString().toRequestBody("text/plain".toMediaTypeOrNull())
 
         registerBtn.isEnabled = false
         registerBtn.text = "Registering..."
 
         RetrofitClient.instance.register(nameBody, rollBody, emailBody, passBody, filePart)
-            .enqueue(object : Callback<Map<String, String>> {
+            .enqueue(object : Callback<Map<String, Any>> {
 
                 override fun onResponse(
-                    call: Call<Map<String, String>>,
-                    response: Response<Map<String, String>>
+                    call: Call<Map<String, Any>>,
+                    response: Response<Map<String, Any>>
                 ) {
 
                     registerBtn.isEnabled = true
@@ -238,14 +255,14 @@ class RegisterActivity : AppCompatActivity() {
 
                     if (response.isSuccessful && res != null) {
 
-                        val error = res["error"]
-                        val message = res["message"]
+                        val success = res["success"]
+                        val message = res["message"]?.toString() ?: "Unknown error"
 
-                        if (error != null) {
-                            Toast.makeText(this@RegisterActivity, error, Toast.LENGTH_LONG).show()
-                        } else if (message != null) {
+                        if (success == true) {
                             Toast.makeText(this@RegisterActivity, "Registration Successful ✅", Toast.LENGTH_LONG).show()
                             finish()
+                        } else {
+                            Toast.makeText(this@RegisterActivity, message, Toast.LENGTH_LONG).show()
                         }
 
                     } else {
@@ -253,11 +270,99 @@ class RegisterActivity : AppCompatActivity() {
                     }
                 }
 
-                override fun onFailure(call: Call<Map<String, String>>, t: Throwable) {
+                override fun onFailure(call: Call<Map<String, Any>>, t: Throwable) {
                     registerBtn.isEnabled = true
                     registerBtn.text = "Register"
                     Toast.makeText(this@RegisterActivity, "Error: ${t.message}", Toast.LENGTH_LONG).show()
                 }
             })
+    }
+
+    private fun sendVerificationEmail(emailText: String) {
+        btnVerifyEmail.isEnabled = false
+
+        RetrofitClient.instance.sendVerificationEmail(emailText)
+            .enqueue(object : Callback<Map<String, Any>> {
+                override fun onResponse(
+                    call: Call<Map<String, Any>>,
+                    response: Response<Map<String, Any>>
+                ) {
+                    if (response.isSuccessful && response.body() != null) {
+                        val success = response.body()!!["success"] as? Boolean ?: false
+                        val message = response.body()!!["message"]?.toString() ?: "Sent"
+                        if (success) {
+                            Toast.makeText(this@RegisterActivity, "Verification email sent. Please check your inbox.", Toast.LENGTH_LONG).show()
+                            btnVerifyEmail.animate().alpha(0f).setDuration(150).withEndAction {
+                                btnVerifyEmail.text = "Sent"
+                                btnVerifyEmail.animate().alpha(1f).setDuration(150).start()
+                            }.start()
+                            startVerificationPolling(emailText)
+                        } else {
+                            btnVerifyEmail.isEnabled = true
+                            btnVerifyEmail.text = "Verify"
+                            Toast.makeText(this@RegisterActivity, message, Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        btnVerifyEmail.isEnabled = true
+                        btnVerifyEmail.text = "Verify"
+                        Toast.makeText(this@RegisterActivity, "Failed to send verification email", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<Map<String, Any>>, t: Throwable) {
+                    btnVerifyEmail.isEnabled = true
+                    btnVerifyEmail.text = "Verify"
+                    Toast.makeText(this@RegisterActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+
+    private fun startVerificationPolling(emailText: String) {
+        stopVerificationPolling()
+
+        pollingRunnable = object : Runnable {
+            override fun run() {
+                RetrofitClient.instance.checkVerificationStatus(emailText)
+                    .enqueue(object : Callback<Map<String, Any>> {
+                        override fun onResponse(
+                            call: Call<Map<String, Any>>,
+                            response: Response<Map<String, Any>>
+                        ) {
+                            if (response.isSuccessful && response.body() != null) {
+                                val verified = response.body()!!["verified"] as? Boolean ?: false
+                                if (verified) {
+                                    isEmailVerified = true
+                                    btnVerifyEmail.visibility = View.GONE
+                                    ivVerifiedTick.visibility = View.VISIBLE
+                                    Toast.makeText(this@RegisterActivity, "Email is verified", Toast.LENGTH_SHORT).show()
+                                    email.isEnabled = false
+                                    stopVerificationPolling()
+                                } else {
+                                    pollingRunnable?.let { pollingHandler.postDelayed(it, 2000) }
+                                }
+                            } else {
+                                pollingRunnable?.let { pollingHandler.postDelayed(it, 2000) }
+                            }
+                        }
+
+                        override fun onFailure(call: Call<Map<String, Any>>, t: Throwable) {
+                            pollingRunnable?.let { pollingHandler.postDelayed(it, 2000) }
+                        }
+                    })
+            }
+        }
+        pollingHandler.post(pollingRunnable!!)
+    }
+
+    private fun stopVerificationPolling() {
+        pollingRunnable?.let {
+            pollingHandler.removeCallbacks(it)
+        }
+        pollingRunnable = null
+    }
+
+    override fun onDestroy() {
+        stopVerificationPolling()
+        super.onDestroy()
     }
 }

@@ -22,7 +22,6 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:src="@drawable/ic_arrow"
-            android:rotation="180"
             app:tint="@color/text_primary"
             android:padding="4dp" />
 
@@ -53,7 +52,8 @@
             android:id="@+id/calendarView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@android:color/transparent" />
+            android:background="@android:color/transparent"
+            android:theme="@style/CalendarDarkTheme" />
 
     </com.google.android.material.card.MaterialCardView>
 

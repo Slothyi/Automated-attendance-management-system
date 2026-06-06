@@ -20,8 +20,13 @@ import retrofit2.Callback
 import retrofit2.Response
 
 import android.graphics.Color
+import android.view.View
+import android.view.animation.AnimationUtils
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.example.attendancepro.models.StudentItem
+import com.example.attendancepro.models.ManualAttendanceRequest
+import com.example.attendancepro.models.MessageResponse
 
 class ClassStudentsActivity : AppCompatActivity() {
 
@@ -42,6 +47,10 @@ class ClassStudentsActivity : AppCompatActivity() {
     // =========================
     private lateinit var btnViewReport:
             Button
+
+    private lateinit var btnConfirmManual: Button
+    private var hasModifications = false
+    private var studentList: List<StudentItem> = listOf()
 
     // =========================
     // ✅ RECYCLER
@@ -93,6 +102,12 @@ class ClassStudentsActivity : AppCompatActivity() {
 
         btnViewReport =
             findViewById(R.id.btnViewReport)
+            
+        btnConfirmManual = findViewById(R.id.btnConfirmManual)
+        
+        btnConfirmManual.setOnClickListener {
+            confirmManualChanges()
+        }
 
         recyclerStudents =
             findViewById(R.id.recyclerStudents)
@@ -196,14 +211,21 @@ class ClassStudentsActivity : AppCompatActivity() {
                             // =========================
                             // ✅ RECYCLER
                             // =========================
-                            recyclerStudents.adapter =
-
-                                StudentAdapter(
-
-                                    this@ClassStudentsActivity,
-
-                                    data.students
-                                )
+                            studentList = data.students
+                            val adapter = StudentAdapter(this@ClassStudentsActivity, studentList)
+                            
+                            adapter.setOnStatusChangeListener(object : StudentAdapter.OnStatusChangeListener {
+                                override fun onStatusChanged() {
+                                    if (!hasModifications) {
+                                        hasModifications = true
+                                        btnConfirmManual.visibility = View.VISIBLE
+                                        btnConfirmManual.alpha = 0f
+                                        btnConfirmManual.animate().alpha(1f).setDuration(300).start()
+                                    }
+                                }
+                            })
+                            
+                            recyclerStudents.adapter = adapter
 
                         } else {
 
@@ -240,5 +262,40 @@ class ClassStudentsActivity : AppCompatActivity() {
                     }
                 }
             )
+    }
+    // =========================
+    // 💾 CONFIRM MANUAL CHANGES
+    // =========================
+    private fun confirmManualChanges() {
+        btnConfirmManual.isEnabled = false
+        btnConfirmManual.text = "Saving..."
+        
+        val request = ManualAttendanceRequest(classId, studentList)
+        
+        RetrofitClient.instance.updateManualAttendance(request)
+            .enqueue(object : Callback<MessageResponse> {
+                override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(this@ClassStudentsActivity, "Attendance updated successfully", Toast.LENGTH_SHORT).show()
+                        hasModifications = false
+                        btnConfirmManual.animate().alpha(0f).setDuration(300).withEndAction {
+                            btnConfirmManual.visibility = View.GONE
+                            btnConfirmManual.text = "Confirm Manual Changes"
+                            btnConfirmManual.isEnabled = true
+                        }.start()
+                        loadStudents() // Reload stats
+                    } else {
+                        Toast.makeText(this@ClassStudentsActivity, "Failed to update", Toast.LENGTH_SHORT).show()
+                        btnConfirmManual.isEnabled = true
+                        btnConfirmManual.text = "Confirm Manual Changes"
+                    }
+                }
+
+                override fun onFailure(call: Call<MessageResponse>, t: Throwable) {
+                    Toast.makeText(this@ClassStudentsActivity, t.message, Toast.LENGTH_SHORT).show()
+                    btnConfirmManual.isEnabled = true
+                    btnConfirmManual.text = "Confirm Manual Changes"
+                }
+            })
     }
 }

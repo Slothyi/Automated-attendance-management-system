@@ -33,7 +33,7 @@
 
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
-            android:paddingTop="100dp"
+            android:paddingTop="60dp"
             android:paddingBottom="30dp">
 
             <!-- TITLE -->
@@ -181,6 +181,29 @@
 
                             android:textSize="15sp"/>
 
+                        <!-- ADD BUTTON -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAddStudent"
+
+                            android:layout_width="match_parent"
+                            android:layout_height="58dp"
+
+                            android:layout_marginTop="20dp"
+
+                            android:text="Add Student"
+
+                            android:textAllCaps="false"
+
+                            android:textSize="16sp"
+
+                            android:textStyle="bold"
+
+                            android:textColor="#FFFFFF"
+
+                            android:backgroundTint="#1294DB"
+
+                            app:cornerRadius="30dp"/>
+
                     </com.google.android.material.textfield.TextInputLayout>
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -212,27 +235,18 @@
                         android:text="Import Previous Students"
                         android:textAllCaps="false"/>
 
-                    <!-- ADD BUTTON -->
+                    <!-- IMPORT FROM CSV -->
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnAddStudent"
-
+                        android:id="@+id/btnImportCsv"
                         android:layout_width="match_parent"
                         android:layout_height="58dp"
-
-                        android:layout_marginTop="20dp"
-
-                        android:text="Add Student"
-
+                        android:layout_marginTop="10dp"
+                        android:text="📂  Import students from CSV"
                         android:textAllCaps="false"
-
-                        android:textSize="16sp"
-
+                        android:textSize="15sp"
                         android:textStyle="bold"
-
                         android:textColor="#FFFFFF"
-
-                        android:backgroundTint="#1294DB"
-
+                        android:backgroundTint="#27AE60"
                         app:cornerRadius="30dp"/>
 
                     <!-- FINISH BUTTON -->

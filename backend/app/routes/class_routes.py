@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from pydantic import BaseModel
 from typing import List
 
@@ -108,9 +108,11 @@ def add_students(data: AddStudentRequest):
 # 📋 GET ALL CLASSES
 # =========================
 @router.get("/all")
-def get_classes():
+def get_classes(admin_id: str = Query(default="")):
 
-    return get_all_classes()
+    return get_all_classes(
+        admin_id=admin_id if admin_id else None
+    )
 
 # =========================
 # 👨‍🎓 GET STUDENT GROUPS

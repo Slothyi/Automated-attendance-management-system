@@ -8,6 +8,7 @@ import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.BluetoothLeAdvertiser
 import android.bluetooth.BluetoothAdapter
 import com.example.attendancepro.models.MessageResponse
+import androidx.activity.result.contract.ActivityResultContracts
 
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -88,6 +89,36 @@ class AdminDashboardActivity : AppCompatActivity() {
 
     private var advertiseCallback:
             AdvertiseCallback? = null
+
+    // Survive the "enable BT" round-trip
+    private var pendingSessionCode: String? = null
+    private var pendingSessionUuid: String? = null
+    private var pendingClassroomBeacon: String? = null
+    private var originalBluetoothName: String? = null
+
+    // =========================
+    // ENABLE BLUETOOTH LAUNCHER (Android 12+)
+    // =========================
+    private val enableBluetoothLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            val code = pendingSessionCode
+            val uuid = pendingSessionUuid
+            val beacon = pendingClassroomBeacon
+            pendingSessionCode = null
+            pendingSessionUuid = null
+            pendingClassroomBeacon = null
+            if (result.resultCode == RESULT_OK && code != null && uuid != null && beacon != null) {
+                startBleBroadcast(code, uuid, beacon)
+            } else {
+                Toast.makeText(
+                    this,
+                    "Bluetooth is required to broadcast the session",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
 
     // =========================
     // SESSION INFO
@@ -356,7 +387,9 @@ class AdminDashboardActivity : AppCompatActivity() {
 
         RetrofitClient.instance
 
-            .getAllClasses()
+            .getAllClasses(
+                adminId = sessionManager.getAdminId() ?: ""
+            )
 
             .enqueue(object :
                 Callback<ClassesResponse> {
@@ -506,9 +539,16 @@ class AdminDashboardActivity : AppCompatActivity() {
             return
         }
 
+        val selectedClass = classList.firstOrNull { it.class_id == classId }
+        val classroomBeacon = if (selectedClass != null) {
+            "CLASS_${selectedClass.department.uppercase().replace(" ", "_").trim()}_${selectedClass.section.uppercase().replace(" ", "_").trim()}"
+        } else {
+            "CLASS_CSE_A"
+        }
+
         RetrofitClient.instance
 
-            .startSession(classId)
+            .startSession(classId, classroomBeacon)
 
             .enqueue(object :
                 Callback<SessionResponse> {
@@ -547,17 +587,15 @@ class AdminDashboardActivity : AppCompatActivity() {
                         )
 
                         tvBluetoothName.text =
-
-                            "BLE Session:\n\n" +
-
-                                    data.session_code
+                            "BLE Session: ${data.session_code}\n\nVerification Code: ${data.otp_code}"
 
                         // =========================
                         // START BLE BROADCAST
                         // =========================
                         startBleBroadcast(
                             data.session_code!!,
-                            data.session_uuid!!
+                            data.session_uuid!!,
+                            data.classroom_beacon ?: "CLASS_CSE_A"
                         )
 
                         // =========================
@@ -695,7 +733,8 @@ class AdminDashboardActivity : AppCompatActivity() {
     // =========================
     private fun startBleBroadcast(
         sessionCode: String,
-        sessionUuid: String
+        sessionUuid: String,
+        classroomBeacon: String
     ) {
 
         val advertisePermission =
@@ -726,6 +765,11 @@ class AdminDashboardActivity : AppCompatActivity() {
             connectPermission !=
             PackageManager.PERMISSION_GRANTED
         ) {
+
+            // Store values to resume after permissions dialog
+            pendingSessionCode = sessionCode
+            pendingSessionUuid = sessionUuid
+            pendingClassroomBeacon = classroomBeacon
 
             ActivityCompat.requestPermissions(
 
@@ -776,17 +820,25 @@ class AdminDashboardActivity : AppCompatActivity() {
 
                 if (!bluetoothAdapter.isEnabled) {
 
-                    val enableBtIntent = Intent(
-                        android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE
-                    )
+                    // Store values to resume after BT enable dialog
+                    pendingSessionCode = sessionCode
+                    pendingSessionUuid = sessionUuid
+                    pendingClassroomBeacon = classroomBeacon
 
-                    startActivity(enableBtIntent)
-
-                    Toast.makeText(
-                        this,
-                        "Please enable Bluetooth",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    try {
+                        enableBluetoothLauncher.launch(
+                            Intent(android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                        )
+                    } catch (e: SecurityException) {
+                        pendingSessionCode = null
+                        pendingSessionUuid = null
+                        pendingClassroomBeacon = null
+                        Toast.makeText(
+                            this,
+                            "Cannot enable Bluetooth automatically",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
 
                     return
                 }
@@ -817,6 +869,16 @@ class AdminDashboardActivity : AppCompatActivity() {
                 return
             }
 
+            // Save original name and change name to simulate beacon
+            try {
+                if (originalBluetoothName == null) {
+                    originalBluetoothName = bluetoothAdapter.name
+                }
+                bluetoothAdapter.name = classroomBeacon
+            } catch (e: SecurityException) {
+                e.printStackTrace()
+            }
+
             val settings =
 
                 AdvertiseSettings.Builder()
@@ -839,20 +901,11 @@ class AdminDashboardActivity : AppCompatActivity() {
 
                     .build()
 
-            val uuid =
-                UUID.fromString(
-                    sessionUuid
-                )
-
             val data =
 
                 AdvertiseData.Builder()
 
-                    .setIncludeDeviceName(false)
-
-                    .addServiceUuid(
-                        ParcelUuid(uuid)
-                    )
+                    .setIncludeDeviceName(true)
 
                     .build()
 
@@ -974,6 +1027,18 @@ class AdminDashboardActivity : AppCompatActivity() {
 
             e.printStackTrace()
         }
+
+        // Restore original system Bluetooth adapter name
+        try {
+            val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
+            val bluetoothAdapter = bluetoothManager.adapter
+            if (bluetoothAdapter != null && originalBluetoothName != null) {
+                bluetoothAdapter.name = originalBluetoothName
+                originalBluetoothName = null
+            }
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+        }
     }
 
     // =========================
@@ -1029,5 +1094,33 @@ class AdminDashboardActivity : AppCompatActivity() {
         super.onResume()
 
         loadClasses()
+    }
+
+    override fun onDestroy() {
+        stopBleBroadcast()
+        super.onDestroy()
+    }
+
+    // =========================
+    // PERMISSION RESULT CALLBACK
+    // =========================
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 200) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                // If permissions granted, start broadcasting using the pending variables
+                if (pendingSessionCode != null && pendingSessionUuid != null && pendingClassroomBeacon != null) {
+                    startBleBroadcast(pendingSessionCode!!, pendingSessionUuid!!, pendingClassroomBeacon!!)
+                } else {
+                    Toast.makeText(this, "Please click 'Start Session' again", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(this, "Bluetooth permissions are required to start a session", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 }

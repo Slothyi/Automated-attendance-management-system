@@ -280,6 +280,13 @@ class AdminLoginActivity : AppCompatActivity() {
                             )
 
                             // =========================
+                            // ✅ SAVE ADMIN ID
+                            // =========================
+                            data.admin_id?.let {
+                                sessionManager.saveAdminId(it)
+                            }
+
+                            // =========================
                             // ✅ SUCCESS
                             // =========================
                             Toast.makeText(

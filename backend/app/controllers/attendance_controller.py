@@ -34,11 +34,18 @@ from app.controllers.session_controller import (
     verify_attendance_session
 )
 
+from app.utils.csv_export import (
+    append_attendance_csv
+)
+
 # =========================
 # 📍 COLLEGE LOCATION
 # =========================
-COLLEGE_LAT = 22.575698
-COLLEGE_LNG = 88.427682
+# COLLEGE_LAT = 22.576028
+# COLLEGE_LNG = 88.427458
+
+COLLEGE_LAT = 23.526427
+COLLEGE_LNG = 87.742537
 
 # =========================
 # 🔥 FACE MATCH THRESHOLD
@@ -56,7 +63,9 @@ def mark_attendance(
     lng,
     session_code,
     session_uuid,
-    file: UploadFile
+    file: UploadFile,
+    classroom_beacon: str = None,
+    otp_code: str = None
 ):
 
     # =========================
@@ -104,21 +113,26 @@ def mark_attendance(
         }
 
     # =========================
-    # 📡 VERIFY ATTENDANCE SESSION
+    # 📡 VERIFY ATTENDANCE SESSION & GET SESSION INFO
     # =========================
-    if not verify_attendance_session(
+    session_info = verify_attendance_session(
         session_code,
-        student["class_id"],
-        session_uuid
-    ):
+        session_uuid,
+        classroom_beacon,
+        otp_code
+    )
+
+    if not session_info:
 
         return {
 
             "status": "Error",
 
             "error":
-                "No active attendance session"
+                "No active session, classroom beacon mismatch, or incorrect manual verification code"
         }
+        
+    session_class_id = session_info["class_id"]
 
     # =========================
     # 📂 SAVE IMAGE
@@ -193,14 +207,17 @@ def mark_attendance(
     ).strftime("%Y-%m-%d")
 
     # =========================
-    # ❌ ALREADY PRESENT?
+    # ❌ ALREADY PRESENT IN LAST 5 MINUTES?
     # =========================
+    five_minutes_ago = datetime.now(timezone.utc) - timedelta(minutes=5)
     existing = (
         attendance_collection.find_one({
 
             "student_id": user_id,
 
-            "date": today
+            "created_at": {
+                "$gte": five_minutes_ago
+            }
         })
     )
 
@@ -211,7 +228,7 @@ def mark_attendance(
             "status": "Error",
 
             "error":
-                "Attendance already marked"
+                "Attendance already marked in the last 5 minutes"
         }
 
     # =========================
@@ -219,8 +236,8 @@ def mark_attendance(
     # =========================
     class_data = classes_collection.find_one({
 
-        "students.roll":
-            student["roll"]
+        "_id": ObjectId(session_class_id),
+        "students.roll": student["roll"]
     })
 
     class_id = None
@@ -235,10 +252,19 @@ def mark_attendance(
         class_name = (
             class_data["class_name"]
         )
+    else:
+        return {
+            "status": "Error",
+            "error": "You are not enrolled in the class for this session"
+        }
 
     # =========================
     # ✅ SAVE ATTENDANCE
     # =========================
+    now_ist = datetime.now(
+        timezone(timedelta(hours=5, minutes=30))
+    )
+
     attendance_collection.insert_one({
 
         "student_id":
@@ -267,7 +293,36 @@ def mark_attendance(
                 timezone.utc
             )
     })
-    
+
+    # =========================
+    # 📄 APPEND TO CLASS CSV
+    # =========================
+    try:
+
+        append_attendance_csv(
+
+            student_id  = user_id,
+
+            name        = student["name"],
+
+            roll        = student["roll"],
+
+            class_name  = class_name or "",
+
+            date        = now_ist.strftime("%Y-%m-%d"),
+
+            time        = now_ist.strftime("%H:%M:%S"),
+
+            section     = class_data.get("section", "") if class_data else "",
+
+            department  = class_data.get("department", "") if class_data else "",
+        )
+
+    except Exception as csv_err:
+
+        # CSV write failure must never block the attendance response
+        print(f"⚠️ CSV export error: {csv_err}")
+
     # =========================
     # ✅ UPDATE STUDENT STATUS
     # =========================
@@ -378,36 +433,40 @@ def unmark_attendance(user_id):
 # 📊 TODAY STATUS
 # =========================
 def get_today_status(user_id):
-
-    today = datetime.now(
-        timezone.utc
-    ).strftime("%Y-%m-%d")
-
-    attendance = (
-        attendance_collection.find_one({
-
-            "student_id":
-                user_id,
-
-            "date":
-                today
-        })
+    latest_attendance = (
+        attendance_collection.find_one(
+            {"student_id": user_id},
+            sort=[("created_at", -1)]
+        )
     )
 
-    if attendance:
+    remaining_minutes = 0
+    remaining_seconds = 0
+    if latest_attendance and "created_at" in latest_attendance:
+        created_at = latest_attendance["created_at"]
+        if created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=timezone.utc)
+        
+        now = datetime.now(timezone.utc)
+        elapsed = (now - created_at).total_seconds()
+        
+        if elapsed < 300: # 5 minutes cooldown
+            remaining_seconds = max(0, int(300 - elapsed))
+            remaining_minutes = int(remaining_seconds // 60) + (1 if remaining_seconds % 60 > 0 else 0)
 
+    if remaining_seconds > 0:
         return {
-
             "marked": True,
-
-            "status": "Present"
+            "status": "Present",
+            "remaining_minutes": remaining_minutes,
+            "remaining_seconds": remaining_seconds
         }
 
     return {
-
         "marked": False,
-
-        "status": "Absent"
+        "status": "Absent",
+        "remaining_minutes": 0,
+        "remaining_seconds": 0
     }
 
 
@@ -415,34 +474,40 @@ def get_today_status(user_id):
 # 📜 WEEKLY HISTORY
 # =========================
 def get_weekly_history(user_id):
+    from app.config.db import registered_students_collection
+    from bson import ObjectId
+
+    student = registered_students_collection.find_one({"_id": ObjectId(user_id)})
+    roll = student.get("roll") if student else None
+
+    query = {"student_id": user_id}
+    if roll:
+        query = {
+            "$or": [
+                {"student_id": user_id},
+                {"roll": roll}
+            ]
+        }
 
     history = list(
-
-        attendance_collection.find({
-
-            "student_id":
-                user_id
-        })
-
+        attendance_collection.find(query)
         .sort(
             "created_at",
             -1
         )
-
-        .limit(7)
     )
 
     formatted = []
 
     for item in history:
+        created_at_str = None
+        if "created_at" in item:
+            created_at_str = item["created_at"].isoformat()
 
         formatted.append({
-
-            "date":
-                item["date"],
-
-            "status":
-                item["status"]
+            "date": item["date"],
+            "status": item["status"],
+            "time": created_at_str
         })
 
     return {
@@ -638,3 +703,54 @@ def get_student_classes(user_id):
         "classes": classes_list
     }
 
+
+
+# =========================
+# ✍ UPDATE MANUAL ATTENDANCE
+# =========================
+def update_manual_attendance(class_id: str, students: list):
+    # Get current IST date
+    now = datetime.now(timezone.utc)
+    ist_time = now + timedelta(hours=5, minutes=30)
+    today_str = ist_time.strftime("%Y-%m-%d")
+
+    for student in students:
+        roll = student.roll
+        status = student.attendance_status
+        name = student.name
+
+        # Find student to get student_id if possible
+        s_doc = registered_students_collection.find_one({"roll": roll})
+        student_id = str(s_doc["_id"]) if s_doc else None
+
+        # Upsert attendance record
+        query = {
+            "class_id": class_id,
+            "date": today_str,
+            "$or": [{"roll": roll}]
+        }
+        if student_id:
+            query["$or"].append({"student_id": student_id})
+
+        update_data = {
+            "status": status,
+            "name": name,
+            "roll": roll,
+            "class_id": class_id,
+            "date": today_str
+        }
+        if student_id:
+            update_data["student_id"] = student_id
+
+        attendance_collection.update_one(
+            query,
+            {"$set": update_data},
+            upsert=True
+        )
+
+    # Re-export CSV for today (optional but recommended to keep it synced)
+    # The existing append_attendance_csv logic mostly appends, 
+    # to perfectly sync manual overrides we'd recreate the file or just let DB be source of truth.
+    # For now, we just update the DB as the source of truth.
+
+    return {"message": "Attendance updated successfully"}

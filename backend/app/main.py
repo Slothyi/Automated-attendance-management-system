@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.security import HTTPBearer
+import os
+from fastapi.staticfiles import StaticFiles
 from app.routes import session_routes
 
 # ✅ ROUTES
@@ -11,6 +13,9 @@ from app.routes import (
 )
 
 app = FastAPI()
+
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 security = HTTPBearer()
 

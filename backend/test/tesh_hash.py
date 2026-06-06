@@ -5,6 +5,6 @@ pwd_context = CryptContext(
     deprecated="auto"
 )
 
-hashed = pwd_context.hash("admin123")
+hashed = pwd_context.hash("123456")
 
 print(hashed)

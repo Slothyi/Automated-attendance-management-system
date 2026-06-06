@@ -7,19 +7,21 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+import android.content.Intent
+import com.example.attendancepro.activities.StudentLoginActivity
 
 object RetrofitClient {
 
-    private const val BASE_URL = "http://10.194.102.169:8000/"  // ✅ your laptop IP
+    const val BASE_URL = "http://192.168.0.166:8000/"  // ✅ your laptop IP
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
         .addInterceptor(logging)
         .addInterceptor { chain ->
 
@@ -38,7 +40,27 @@ object RetrofitClient {
                 requestBuilder.addHeader("Authorization", "Bearer $token")
             }
 
-            chain.proceed(requestBuilder.build())
+            val response = chain.proceed(requestBuilder.build())
+
+            // 🔐 SINGLE SESSION EXPIRATION INTERCEPTOR
+            if (response.code == 401 && !url.contains("auth/login") && !url.contains("auth/register")) {
+                SessionManager(App.context).clearSession()
+
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    android.widget.Toast.makeText(
+                        App.context,
+                        "Session expired. Another device has logged in.",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                }
+
+                val intent = Intent(App.context, StudentLoginActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                App.context.startActivity(intent)
+            }
+
+            response
         }
         .build()
 

@@ -9,6 +9,7 @@
     android:background="@drawable/bg_attendance_history_item">
 
     <ImageView
+        android:id="@+id/ivStatusIcon"
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:src="@drawable/ic_check_circle" />

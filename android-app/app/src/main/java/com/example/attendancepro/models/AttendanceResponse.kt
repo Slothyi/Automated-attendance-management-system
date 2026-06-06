@@ -7,5 +7,7 @@ data class AttendanceResponse(
 
     val error: String? = null,
 
-    val remaining_minutes: Int? = null
+    val remaining_minutes: Int? = null,
+
+    val remaining_seconds: Int? = null
 )

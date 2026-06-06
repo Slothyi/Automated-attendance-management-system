@@ -6,5 +6,5 @@ data class StudentItem(
 
     val roll: String,
 
-    val attendance_status: String? = "Absent"
+    var attendance_status: String? = "Absent"
 )

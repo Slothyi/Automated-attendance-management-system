@@ -30,6 +30,7 @@ class StudentLoginActivity : AppCompatActivity() {
     private lateinit var btnLogin: Button
 
     private lateinit var tvRegister: TextView
+    private lateinit var tvForgotPassword: TextView
 
     // =========================
     // ✅ SESSION
@@ -74,6 +75,9 @@ class StudentLoginActivity : AppCompatActivity() {
         tvRegister =
             findViewById(R.id.tvRegister)
 
+        tvForgotPassword =
+            findViewById(R.id.tvForgotPassword)
+
         // =========================
         // ✅ LOGIN BUTTON
         // =========================
@@ -92,6 +96,20 @@ class StudentLoginActivity : AppCompatActivity() {
                 Intent(
                     this,
                     RegisterActivity::class.java
+                )
+            )
+        }
+
+        // =========================
+        // ✅ FORGOT PASSWORD
+        // =========================
+        tvForgotPassword.setOnClickListener {
+
+            startActivity(
+
+                Intent(
+                    this,
+                    ForgotPasswordActivity::class.java
                 )
             )
         }
@@ -231,6 +249,7 @@ class StudentLoginActivity : AppCompatActivity() {
 
                             loginResponse.name ?: ""
                         )
+                        sessionManager.saveEmail(email)
                         sessionManager.saveLatestClassId(
                             loginResponse.class_id ?: ""
                         )

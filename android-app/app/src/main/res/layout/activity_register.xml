@@ -88,21 +88,57 @@
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- EMAIL -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/RoundedTextInput"
+                    <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Email"
                         android:layout_marginTop="14dp">
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/email"
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/emailInputLayout"
+                            style="@style/RoundedTextInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:padding="14dp"
-                            android:inputType="textEmailAddress"
-                            android:textColor="#212121"/>
-                    </com.google.android.material.textfield.TextInputLayout>
+                            android:hint="Email">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/email"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingStart="14dp"
+                                android:paddingTop="14dp"
+                                android:paddingBottom="14dp"
+                                android:paddingEnd="90dp"
+                                android:inputType="textEmailAddress"
+                                android:textColor="#212121"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <TextView
+                            android:id="@+id/btnVerifyEmail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginEnd="16dp"
+                            android:text="Verify"
+                            android:textColor="#1976D2"
+                            android:textStyle="bold"
+                            android:textSize="14sp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:padding="8dp"/>
+
+                        <ImageView
+                            android:id="@+id/ivVerifiedTick"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginEnd="16dp"
+                            android:src="@drawable/ic_check_circle"
+                            android:visibility="gone"/>
+                    </RelativeLayout>
+
 
                     <!-- PASSWORD -->
                     <com.google.android.material.textfield.TextInputLayout

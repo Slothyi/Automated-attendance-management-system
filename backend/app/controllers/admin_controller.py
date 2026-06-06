@@ -110,5 +110,7 @@ def admin_login(
 
         "name": normalized_name,
 
-        "email": normalized_email
+        "email": normalized_email,
+
+        "admin_id": str(admin["_id"])
     }

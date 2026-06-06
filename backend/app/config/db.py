@@ -60,6 +60,16 @@ attendance_sessions_collection = db[
 student_groups_collection = db["student_groups"]
 
 # =========================
+# 📧 EMAIL VERIFICATIONS
+# =========================
+email_verifications_collection = db["email_verifications"]
+
+# =========================
+# 🔑 PASSWORD RESETS
+# =========================
+password_resets_collection = db["password_resets"]
+
+# =========================
 # ✅ INDEXES
 # =========================
 
@@ -114,13 +124,35 @@ registered_students_collection.create_index(
     unique=True
 )
 
-admins_collection.create_index([
-    ("roll", 1),
-    ("class_id", 1)
-], unique=True)
+# =========================
+# 🧹 CLEAN UP BAD ADMIN INDEXES
+# =========================
+def cleanup_admin_indexes():
 
+    try:
+
+        existing = admins_collection.index_information()
+
+        # Drop the wrong (roll, class_id) index if it still exists
+        if "roll_1_class_id_1" in existing:
+
+            admins_collection.drop_index("roll_1_class_id_1")
+
+            print("[DB] Dropped stale admin index: roll_1_class_id_1")
+
+    except OperationFailure:
+
+        pass
+
+
+cleanup_admin_indexes()
+
+# =========================
+# ✅ ADMIN: only email must be unique
+# =========================
 admins_collection.create_index(
     "email",
     unique=True
 )
+
 print("✅ MongoDB Connected")

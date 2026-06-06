@@ -144,4 +144,16 @@
         android:layout_weight="1"
 
         android:layout_marginTop="12dp"/>
+
+    <!-- ✅ CONFIRM MANUAL CHANGES -->
+    <Button
+        android:id="@+id/btnConfirmManual"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="#4CAF50"
+        android:text="Confirm Manual Changes"
+        android:textColor="#FFFFFF"
+        android:visibility="gone" />
+
 </LinearLayout>

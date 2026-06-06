@@ -60,6 +60,19 @@ class SessionManager(context: Context) {
     }
 
     // =========================
+    // 📧 USER EMAIL
+    // =========================
+    fun saveEmail(email: String) {
+        prefs.edit()
+            .putString("email", email)
+            .apply()
+    }
+
+    fun getEmail(): String? {
+        return prefs.getString("email", null)
+    }
+
+    // =========================
     // 🏫 LATEST CLASS ID
     // =========================
     fun saveLatestClassId(id: String) {
@@ -101,6 +114,29 @@ class SessionManager(context: Context) {
 
         return prefs.getString(
             "LATEST_CLASS_NAME",
+            null
+        )
+    }
+
+    // =========================
+    // 🗄️ ADMIN ID
+    // =========================
+    fun saveAdminId(id: String) {
+
+        prefs.edit()
+
+            .putString(
+                "admin_id",
+                id
+            )
+
+            .apply()
+    }
+
+    fun getAdminId(): String? {
+
+        return prefs.getString(
+            "admin_id",
             null
         )
     }

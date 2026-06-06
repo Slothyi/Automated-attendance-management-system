@@ -22,10 +22,27 @@ from app.controllers.attendance_controller import (
 
     get_weekly_history,
 
-    get_class_attendance_report
+    get_class_attendance_report,
+    
+    update_manual_attendance
 )
 
+from pydantic import BaseModel
+from typing import List
+
+class StudentItemPayload(BaseModel):
+    name: str
+    roll: str
+    attendance_status: str
+
+class ManualAttendancePayload(BaseModel):
+    class_id: str
+    students: List[StudentItemPayload]
+
+
 from app.utils.jwt_handler import verify_token
+from bson import ObjectId
+from app.config.db import registered_students_collection
 
 # =========================
 # ✅ ROUTER
@@ -72,6 +89,24 @@ def get_current_user(
             detail="Invalid token"
         )
 
+    # =========================
+    # ✅ SINGLE ACTIVE SESSION CHECK
+    # =========================
+    try:
+        student_doc = registered_students_collection.find_one({"_id": ObjectId(user["id"])})
+        if not student_doc or student_doc.get("active_token") != token:
+            raise HTTPException(
+                status_code=401,
+                detail="Session expired. Another device has logged in."
+            )
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(
+            status_code=401,
+            detail="Session expired. Another device has logged in."
+        )
+
     return user
 
 
@@ -91,6 +126,10 @@ def mark(
     
     file: UploadFile = File(...),
 
+    classroom_beacon: str = Form(default=None),
+
+    otp_code: str = Form(default=None),
+
     user: dict = Depends(get_current_user)
 
 ):
@@ -109,7 +148,11 @@ def mark(
             
             session_uuid,
             
-            file
+            file,
+
+            classroom_beacon,
+
+            otp_code
         )
 
     except Exception as e:
@@ -282,3 +325,12 @@ def student_classes(
             status_code=500,
             detail="Internal server error"
         )
+# =========================
+# ✍ MANUAL ATTENDANCE OVERRIDE
+# =========================
+@router.post("/manual_update")
+def manual_update(
+    payload: ManualAttendancePayload,
+    user: dict = Depends(get_current_user)
+):
+    return update_manual_attendance(payload.class_id, payload.students)
