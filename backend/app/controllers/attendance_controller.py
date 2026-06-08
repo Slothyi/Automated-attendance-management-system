@@ -44,8 +44,8 @@ from app.utils.csv_export import (
 # COLLEGE_LAT = 22.576028
 # COLLEGE_LNG = 88.427458
 
-COLLEGE_LAT = 23.526427
-COLLEGE_LNG = 87.742537
+COLLEGE_LAT = 22.557236
+COLLEGE_LNG = 88.415766
 
 # =========================
 # 🔥 FACE MATCH THRESHOLD

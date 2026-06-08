@@ -12,7 +12,7 @@ import com.example.attendancepro.activities.StudentLoginActivity
 
 object RetrofitClient {
 
-    const val BASE_URL = "http://192.168.0.166:8000/"  // ✅ your laptop IP
+    const val BASE_URL = "http://192.168.29.214:8000/"  // ✅ your laptop IP
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

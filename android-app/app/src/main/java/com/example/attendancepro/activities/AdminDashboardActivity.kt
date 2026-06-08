@@ -1052,7 +1052,7 @@ class AdminDashboardActivity : AppCompatActivity() {
 
             object : CountDownTimer(
 
-                600000,
+                30000,
                 1000
 
             ) {

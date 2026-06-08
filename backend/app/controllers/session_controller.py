@@ -136,7 +136,7 @@ def start_attendance_session(
 
             datetime.now(
                 timezone.utc
-            ) + timedelta(minutes=10)
+            ) + timedelta(seconds=30)
     })
 
     return {
