@@ -91,6 +91,16 @@ class DashboardActivity : AppCompatActivity() {
 
         loadHistory()
         checkCooldownOnStart()
+
+        // Handle back press to go to Login screen
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val intent = Intent(this@DashboardActivity, StudentLoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
+                finish()
+            }
+        })
     }
     
     override fun onResume() {

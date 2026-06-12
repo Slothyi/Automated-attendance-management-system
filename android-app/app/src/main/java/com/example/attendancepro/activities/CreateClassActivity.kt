@@ -19,16 +19,20 @@ import android.graphics.Color
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
+import android.text.InputFilter
+
 class CreateClassActivity : AppCompatActivity() {
 
     // =========================
     // ✅ INPUT FIELDS
     // =========================
-    private lateinit var etClassName: EditText
-    private lateinit var etSection: EditText
-    private lateinit var etDepartment: EditText
-    private lateinit var etYear: EditText
+    private lateinit var etCourseName: EditText
+    private lateinit var etCourseCode: EditText
     private lateinit var etSemester: EditText
+    private lateinit var etSection: EditText
+    private lateinit var etYear: EditText
+    private lateinit var etAcademicSession: EditText
+    private lateinit var etDepartment: EditText
 
     // =========================
     // ✅ BUTTON
@@ -69,31 +73,85 @@ class CreateClassActivity : AppCompatActivity() {
         // =========================
         // ✅ VIEW BINDING
         // =========================
-        etClassName =
-            findViewById(R.id.etClassName)
+        etCourseName = findViewById(R.id.etCourseName)
+        etCourseCode = findViewById(R.id.etCourseCode)
+        etSemester = findViewById(R.id.etSemester)
+        etSection = findViewById(R.id.etSection)
+        etYear = findViewById(R.id.etYear)
+        etAcademicSession = findViewById(R.id.etAcademicSession)
+        etDepartment = findViewById(R.id.etDepartment)
 
-        etSection =
-            findViewById(R.id.etSection)
+        btnCreate = findViewById(R.id.btnCreate)
 
-        etDepartment =
-            findViewById(R.id.etDepartment)
+        // =========================
+        // ✅ INPUT FORMATTING
+        // =========================
+        val allCapsFilter = arrayOf<InputFilter>(InputFilter.AllCaps())
+        etCourseName.filters = allCapsFilter
+        etCourseCode.filters = allCapsFilter
+        etSection.filters = allCapsFilter
+        etDepartment.filters = allCapsFilter
 
-        etYear =
-            findViewById(R.id.etYear)
+        etSemester.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) etSemester.setText(formatOrdinal(etSemester.text.toString()))
+        }
+        
+        etYear.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) etYear.setText(formatOrdinal(etYear.text.toString()))
+        }
 
-        etSemester =
-            findViewById(R.id.etSemester)
-
-        btnCreate =
-            findViewById(R.id.btnCreate)
+        etAcademicSession.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) etAcademicSession.setText(formatAcademicSession(etAcademicSession.text.toString()))
+        }
 
         // =========================
         // ✅ CREATE BUTTON
         // =========================
         btnCreate.setOnClickListener {
-
             createClass()
         }
+    }
+
+    private fun formatOrdinal(text: String): String {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return ""
+        // Check if already ends with st, nd, rd, th
+        if (trimmed.matches(Regex("^[0-9]+(st|nd|rd|th)$", RegexOption.IGNORE_CASE))) {
+            return trimmed.lowercase()
+        }
+        val numStr = trimmed.replace(Regex("[^0-9]"), "")
+        if (numStr.isEmpty()) return trimmed // Leaves things like "Final" as is
+        
+        val number = numStr.toIntOrNull() ?: return trimmed
+        val suffix = when {
+            number % 100 in 11..13 -> "th"
+            number % 10 == 1 -> "st"
+            number % 10 == 2 -> "nd"
+            number % 10 == 3 -> "rd"
+            else -> "th"
+        }
+        return "$number$suffix"
+    }
+
+    private fun formatAcademicSession(text: String): String {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return ""
+        // Match things like 2022-2027 or 2022/27
+        val match = Regex("^([0-9]{4})[^0-9]*([0-9]{2,4})$").find(trimmed)
+        if (match != null) {
+            val startYear = match.groupValues[1]
+            val endYear = match.groupValues[2]
+            val shortEnd = if (endYear.length == 4) endYear.substring(2) else endYear
+            return "$startYear-$shortEnd"
+        }
+        // Match just a single 4-digit year, assume 4-year course gap
+        val singleYearMatch = Regex("^([0-9]{4})$").find(trimmed)
+        if (singleYearMatch != null) {
+            val startYear = singleYearMatch.groupValues[1].toInt()
+            val endYear = startYear + 4
+            return "$startYear-${endYear.toString().substring(2)}"
+        }
+        return trimmed
     }
 
     // =========================
@@ -101,50 +159,27 @@ class CreateClassActivity : AppCompatActivity() {
     // =========================
     private fun createClass() {
 
-        val className =
-
-            etClassName.text
-                .toString()
-                .trim()
-
-        val section =
-
-            etSection.text
-                .toString()
-                .trim()
-
-        val department =
-
-            etDepartment.text
-                .toString()
-                .trim()
-
-        val year =
-
-            etYear.text
-                .toString()
-                .trim()
-
-        val semester =
-
-            etSemester.text
-                .toString()
-                .trim()
+        val courseName = etCourseName.text.toString().trim().uppercase()
+        val courseCode = etCourseCode.text.toString().trim().uppercase()
+        val department = etDepartment.text.toString().trim().uppercase()
+        val section = etSection.text.toString().trim().uppercase()
+        
+        // Also format on submit in case they didn't lose focus
+        val semester = formatOrdinal(etSemester.text.toString())
+        val year = formatOrdinal(etYear.text.toString())
+        val academicSession = formatAcademicSession(etAcademicSession.text.toString())
 
         // =========================
         // ✅ VALIDATION
         // =========================
         if (
-
-            className.isEmpty() ||
-
+            courseName.isEmpty() ||
+            courseCode.isEmpty() ||
+            semester.isEmpty() ||
             section.isEmpty() ||
-
-            department.isEmpty() ||
-
             year.isEmpty() ||
-
-            semester.isEmpty()
+            academicSession.isEmpty() ||
+            department.isEmpty()
         ) {
 
             Toast.makeText(
@@ -160,17 +195,13 @@ class CreateClassActivity : AppCompatActivity() {
         // ✅ REQUEST BODY
         // =========================
         val request = CreateClassRequest(
-
-            class_name = className,
-
-            section = section,
-
-            department = department,
-
-            year = year,
-
+            course_name = courseName,
+            course_code = courseCode,
             semester = semester,
-
+            section = section,
+            year = year,
+            academic_session = academicSession,
+            department = department,
             admin_id = sessionManager.getAdminId() ?: ""
         )
 
@@ -209,7 +240,7 @@ class CreateClassActivity : AppCompatActivity() {
 
                         sessionManager
                             .saveLatestClassName(
-                                className
+                                courseName
                             )
 
                         Toast.makeText(
@@ -237,7 +268,7 @@ class CreateClassActivity : AppCompatActivity() {
                         // ✅ SEND CLASS NAME
                         intent.putExtra(
                             "CLASS_NAME",
-                            className
+                            courseName
                         )
 
                         startActivity(intent)

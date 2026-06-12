@@ -264,6 +264,11 @@ class AdminLoginActivity : AppCompatActivity() {
                             }
 
                             // =========================
+                            // ✅ CLEAR OLD SESSION
+                            // =========================
+                            sessionManager.clearSession()
+
+                            // =========================
                             // ✅ SAVE TOKEN
                             // =========================
                             sessionManager.saveToken(
@@ -312,7 +317,7 @@ class AdminLoginActivity : AppCompatActivity() {
                                 )
                             )
 
-                            finish()
+                            // finish()
 
                         } else {
 

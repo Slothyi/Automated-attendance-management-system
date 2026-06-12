@@ -17,23 +17,32 @@ class SessionManager(context: Context) {
     // 🔐 TOKEN
     // =========================
     fun saveToken(token: String) {
-
         prefs.edit()
-
-            .putString(
-                "token",
-                token
-            )
-
+            .putString("token", token)
+            .putLong("login_timestamp", System.currentTimeMillis())
             .apply()
     }
 
     fun getToken(): String? {
-
         return prefs.getString(
             "token",
             null
         )
+    }
+
+    fun isSessionValid(): Boolean {
+        val token = getToken() ?: return false
+        var loginTimestamp = prefs.getLong("login_timestamp", 0L)
+        if (loginTimestamp == 0L) {
+            // For legacy sessions, save current time as fallback so they stay logged in
+            loginTimestamp = System.currentTimeMillis()
+            prefs.edit().putLong("login_timestamp", loginTimestamp).apply()
+        }
+        
+        val expirationTime = 5L * 60 * 60 * 1000L // 5 hours session persistence
+        val currentTime = System.currentTimeMillis()
+        
+        return (currentTime - loginTimestamp) < expirationTime
     }
 
     // =========================

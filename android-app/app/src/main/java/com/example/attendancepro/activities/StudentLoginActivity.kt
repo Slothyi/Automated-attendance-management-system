@@ -235,6 +235,11 @@ class StudentLoginActivity : AppCompatActivity() {
                         }
 
                         // =========================
+                        // ✅ CLEAR OLD SESSION
+                        // =========================
+                        sessionManager.clearSession()
+
+                        // =========================
                         // ✅ SAVE TOKEN
                         // =========================
                         sessionManager.saveToken(
@@ -283,7 +288,7 @@ class StudentLoginActivity : AppCompatActivity() {
                             )
                         )
 
-                        finish()
+                        // finish()
 
                     } else {
 

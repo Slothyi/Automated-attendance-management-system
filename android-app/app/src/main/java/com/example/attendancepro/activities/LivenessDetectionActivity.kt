@@ -568,7 +568,7 @@ class LivenessDetectionActivity : AppCompatActivity() {
     }
 
     private fun showHelpDialog() {
-        AlertDialog.Builder(this)
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
             .setTitle("Liveness Verification")
             .setMessage("This verification helps prevent unauthorized attendance logging. Please align your face in the oval, turn your head slightly left or right when prompted, and look straight again for automatic photo capture.")
             .setPositiveButton("Got It", null)

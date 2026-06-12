@@ -94,6 +94,8 @@ class StudentAdapter(
 
             if (status.equals("Present", ignoreCase = true)) {
                 holder.tvStatus.setTextColor(Color.GREEN)
+            } else if (status.equals("N/A", ignoreCase = true)) {
+                holder.tvStatus.setTextColor(Color.GRAY)
             } else {
                 holder.tvStatus.setTextColor(Color.RED)
             }
@@ -104,6 +106,12 @@ class StudentAdapter(
         // Toggle Status on Click
         holder.tvStatus.setOnClickListener {
             val currentStatus = item.attendance_status ?: "Absent"
+            
+            // Prevent changing N/A status
+            if (currentStatus.equals("N/A", ignoreCase = true)) {
+                return@setOnClickListener
+            }
+            
             if (currentStatus.equals("Present", ignoreCase = true)) {
                 item.attendance_status = "Absent"
             } else {

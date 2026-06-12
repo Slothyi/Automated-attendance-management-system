@@ -97,8 +97,10 @@ class AttendanceActivity : AppCompatActivity() {
             val callback = pendingBleCallback
             pendingBleCallback = null
             if (result.resultCode == RESULT_OK) {
-                // User enabled BT — retry the scan
-                callback?.let { verifyTeacherBluetooth(it) }
+                // User enabled BT — wait briefly for radio initialization before retrying the scan
+                Handler(Looper.getMainLooper()).postDelayed({
+                    callback?.let { verifyTeacherBluetooth(it) }
+                }, 1500)
             } else {
                 Toast.makeText(
                     this,
@@ -177,6 +179,9 @@ class AttendanceActivity : AppCompatActivity() {
     }
 
 
+    // All available sessions (when multiple teachers run sessions simultaneously)
+    private var allSessions: List<com.example.attendancepro.models.SessionItem> = emptyList()
+
     private fun loadActiveSession(onLoaded: (Boolean) -> Unit) {
 
         val classId = sessionManager.getLatestClassId()
@@ -202,6 +207,18 @@ class AttendanceActivity : AppCompatActivity() {
                         expectedSessionUuid = body.session_uuid ?: ""
                         expectedClassroomBeacon = body.classroom_beacon ?: ""
                         expectedOtpCode = body.otp_code ?: ""
+
+                        // Store all sessions for BLE-based matching
+                        allSessions = body.all_sessions ?: listOf(
+                            com.example.attendancepro.models.SessionItem(
+                                session_code = body.session_code,
+                                session_uuid = body.session_uuid,
+                                bluetooth_name = body.bluetooth_name,
+                                classroom_beacon = body.classroom_beacon,
+                                otp_code = body.otp_code,
+                                session_class_id = body.session_class_id
+                            )
+                        )
 
                         sessionInfoText.text =
                             "Session Code: $detectedSessionCode\n\nClassroom Beacon: $expectedClassroomBeacon"
@@ -231,11 +248,17 @@ class AttendanceActivity : AppCompatActivity() {
     // =========================
     private fun checkPermissionsAndCapture() {
 
-        val permissions = arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.BLUETOOTH_SCAN,
-            Manifest.permission.BLUETOOTH_CONNECT
-        )
+        val permissions = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_CONNECT
+            )
+        } else {
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        }
 
         val denied = permissions.any {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
@@ -319,12 +342,14 @@ class AttendanceActivity : AppCompatActivity() {
     // =========================
     private fun verifyTeacherBluetooth(callback: (Boolean) -> Unit) {
 
-        if (ContextCompat.checkSelfPermission(
-                this, Manifest.permission.BLUETOOTH_SCAN
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            callback(false)
-            return
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            if (ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.BLUETOOTH_SCAN
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                callback(false)
+                return
+            }
         }
 
         try {
@@ -369,16 +394,21 @@ class AttendanceActivity : AppCompatActivity() {
 
                 override fun onScanResult(callbackType: Int, result: ScanResult) {
                     try {
-                        val deviceName = result.scanRecord?.deviceName ?: result.device.name
-                        if (deviceName != null && deviceName.startsWith("CLASS_")) {
-                            val rssi = result.rssi
-                            val existingMax = detectedBeacons[deviceName] ?: -999
-                            if (rssi > existingMax) {
-                                detectedBeacons[deviceName] = rssi
-                                println("Detected Beacon: $deviceName, RSSI: $rssi")
+                        val beaconUuid = ParcelUuid(java.util.UUID.fromString("0000BEEF-0000-1000-8000-00805f9b34fb"))
+                        val serviceDataBytes = result.scanRecord?.getServiceData(beaconUuid)
+
+                        if (serviceDataBytes != null) {
+                            val decodedBeacon = String(serviceDataBytes, Charsets.UTF_8)
+                            if (decodedBeacon.startsWith("CLASS_")) {
+                                val rssi = result.rssi
+                                val existingMax = detectedBeacons[decodedBeacon] ?: -999
+                                if (rssi > existingMax) {
+                                    detectedBeacons[decodedBeacon] = rssi
+                                    println("Detected Beacon: $decodedBeacon, RSSI: $rssi")
+                                }
                             }
                         }
-                    } catch (e: SecurityException) {
+                    } catch (e: Exception) {
                         e.printStackTrace()
                     }
                 }
@@ -439,20 +469,36 @@ class AttendanceActivity : AppCompatActivity() {
                     return@postDelayed
                 }
 
-                // Prioritize matching the student's expected classroom beacon from all detected beacons
-                val matchingBeacon = detectedBeacons.keys.firstOrNull { it.equals(expectedClassroomBeacon, ignoreCase = true) }
+                // Try to match detected beacons against ALL sessions the student has access to
+                // This handles the case where two teachers are running sessions side by side
+                var matched = false
+                for (session in allSessions) {
+                    val beacon = session.classroom_beacon ?: continue
+                    val matchingBeacon = detectedBeacons.keys.firstOrNull { it.equals(beacon, ignoreCase = true) }
+                    if (matchingBeacon != null) {
+                        val rssi = detectedBeacons[matchingBeacon]
+                        println("Matched Session Beacon: $matchingBeacon, RSSI: $rssi, ClassID: ${session.session_class_id}")
 
-                if (matchingBeacon != null) {
-                    val rssi = detectedBeacons[matchingBeacon]
-                    println("Enrolled Classroom Beacon Detected: $matchingBeacon, RSSI: $rssi")
-                    statusText.text = "📡 Classroom Beacon Detected ($matchingBeacon)"
-                    callback(true)
-                } else {
+                        // Switch to the correct session's credentials
+                        detectedSessionCode = session.session_code ?: ""
+                        expectedSessionUuid = session.session_uuid ?: ""
+                        expectedClassroomBeacon = beacon
+                        expectedOtpCode = session.otp_code ?: ""
+
+                        statusText.text = "📡 Classroom Beacon Detected ($matchingBeacon)"
+                        matched = true
+                        callback(true)
+                        break
+                    }
+                }
+
+                if (!matched) {
                     val nearestBeacon = detectedBeacons.maxByOrNull { it.value }?.key
-                    println("Enrolled Classroom Beacon NOT Detected. Nearest Beacon: $nearestBeacon, RSSI: ${detectedBeacons[nearestBeacon]}")
+                    val expectedBeacons = allSessions.mapNotNull { it.classroom_beacon }.joinToString(", ")
+                    println("No matching beacon found. Nearest: $nearestBeacon. Expected one of: $expectedBeacons")
                     Toast.makeText(
                         this@AttendanceActivity,
-                        "Wrong Classroom! Nearest detected: $nearestBeacon. Expected: $expectedClassroomBeacon.",
+                        "Wrong Classroom! Nearest detected: $nearestBeacon. Expected: $expectedBeacons.",
                         Toast.LENGTH_LONG
                     ).show()
                     statusText.text = "❌ Mismatched Classroom"
@@ -712,28 +758,46 @@ class AttendanceActivity : AppCompatActivity() {
     }
 
     private fun showVerificationDialog() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_verification_code, null)
-        val input = dialogView.findViewById<android.widget.EditText>(R.id.etVerificationCode)
-        input.setTextColor(android.graphics.Color.BLACK)
-        input.setHintTextColor(android.graphics.Color.GRAY)
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(R.layout.dialog_verification_code)
+        dialog.setCancelable(false)
 
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle("Enter Verification Code")
-            .setMessage("Please enter the 5-digit classroom code manually to start attendance:")
-            .setView(dialogView)
-            .setCancelable(false)
-            .setPositiveButton("Verify") { dialog, _ ->
-                val enteredCode = input.text.toString().trim()
-                if (enteredCode.equals(expectedOtpCode, ignoreCase = true)) {
-                    dialog.dismiss()
-                    checkPermissionsAndCapture()
-                } else {
-                    Toast.makeText(this, "Incorrect Verification Code!", Toast.LENGTH_LONG).show()
-                }
-            }
-            .setNegativeButton("Cancel") { dialog, _ ->
+        // Make the system window background fully transparent so only our CardView shows
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        // Apply a beautiful glassmorphism blur effect
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            dialog.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+            dialog.window?.attributes?.blurBehindRadius = 30
+        } else {
+            dialog.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            dialog.window?.attributes?.dimAmount = 0.7f
+        }
+
+        val input = dialog.findViewById<android.widget.EditText>(R.id.etVerificationCode)
+        val btnCancel = dialog.findViewById<android.widget.Button>(R.id.btnCancel)
+        val btnVerify = dialog.findViewById<android.widget.Button>(R.id.btnVerify)
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnVerify.setOnClickListener {
+            val enteredCode = input.text.toString().trim()
+            if (enteredCode.equals(expectedOtpCode, ignoreCase = true)) {
                 dialog.dismiss()
+                checkPermissionsAndCapture()
+            } else {
+                Toast.makeText(this, "Incorrect Verification Code!", Toast.LENGTH_LONG).show()
             }
-            .show()
+        }
+
+        dialog.show()
+        val window = dialog.window
+        if (window != null) {
+            val displayMetrics = resources.displayMetrics
+            val width = (displayMetrics.widthPixels * 0.90).toInt()
+            window.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
     }
 }

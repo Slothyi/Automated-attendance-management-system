@@ -56,4 +56,12 @@
         <item name="colorAccent">@color/cyan_accent</item>
     </style>
 
+    <!-- 🗓️ ACRYLIC DATE PICKER THEME -->
+    <style name="AcrylicDatePickerTheme" parent="ThemeOverlay.MaterialComponents.MaterialCalendar.Fullscreen">
+        <item name="colorSurface">#F0F8FF</item> <!-- Alice Blue (White bluish acrylic tone) -->
+        <item name="colorPrimary">#2196F3</item> <!-- Bright blue accent -->
+        <item name="colorOnSurface">#101820</item> <!-- Dark text for contrast -->
+        <item name="colorOnPrimary">#FFFFFF</item> <!-- White text on selected dates -->
+    </style>
+
 </resources>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Enabled State (Vibrant) -->
+    <item android:state_enabled="true">
+        <shape>
+            <gradient
+                android:angle="45"
+                android:startColor="#FF8FE3FF"
+                android:endColor="#FF90EAB0"/>
+            <corners android:radius="10dp"/>
+        </shape>
+    </item>
+    <!-- Disabled State (Dimmed/40% Alpha) -->
+    <item android:state_enabled="false">
+        <shape>
+            <gradient
+                android:angle="45"
+                android:startColor="#668FE3FF"
+                android:endColor="#6690EAB0"/>
+            <corners android:radius="10dp"/>
+        </shape>
+    </item>
+</selector>

@@ -33,7 +33,7 @@
 
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
-            android:paddingTop="100dp"
+            android:paddingTop="40dp"
             android:paddingBottom="30dp">
 
             <!-- TITLE -->
@@ -73,7 +73,7 @@
 
                 app:cardCornerRadius="38dp"
 
-                app:cardElevation="12dp">
+                app:cardElevation="4dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -83,195 +83,72 @@
 
                     android:padding="26dp">
 
-                    <!-- CLASS NAME -->
+                    <!-- COURSE NAME -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-
-                        android:hint="Class Name"
-
+                        android:hint="Course Name"
                         android:textColorHint="#7E97A7"
-
                         app:hintTextColor="#7E97A7"
-
                         app:boxBackgroundMode="filled"
-
                         app:boxBackgroundColor="#EEF6FB"
-
                         app:boxStrokeColor="#1BA8E8"
-
                         app:boxStrokeWidth="1dp"
-
                         app:boxStrokeWidthFocused="2dp"
-
                         app:boxCornerRadiusTopStart="24dp"
                         app:boxCornerRadiusTopEnd="24dp"
                         app:boxCornerRadiusBottomStart="24dp"
                         app:boxCornerRadiusBottomEnd="24dp">
 
                         <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etClassName"
-
+                            android:id="@+id/etCourseName"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-
                             android:padding="18dp"
-
                             android:textColor="#111111"
-
                             android:textSize="15sp"/>
-
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- SECTION -->
+                    <!-- COURSE CODE -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-
                         android:layout_marginTop="20dp"
-
-                        android:hint="Section"
-
+                        android:hint="Course Code"
                         android:textColorHint="#7E97A7"
-
                         app:hintTextColor="#7E97A7"
-
                         app:boxBackgroundMode="filled"
-
                         app:boxBackgroundColor="#EEF6FB"
-
                         app:boxStrokeColor="#1BA8E8"
-
                         app:boxStrokeWidth="1dp"
-
                         app:boxStrokeWidthFocused="2dp"
-
                         app:boxCornerRadiusTopStart="24dp"
                         app:boxCornerRadiusTopEnd="24dp"
                         app:boxCornerRadiusBottomStart="24dp"
                         app:boxCornerRadiusBottomEnd="24dp">
 
                         <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etSection"
-
+                            android:id="@+id/etCourseCode"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-
                             android:padding="18dp"
-
                             android:textColor="#111111"
-
                             android:textSize="15sp"/>
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- DEPARTMENT -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-
-                        android:layout_marginTop="20dp"
-
-                        android:hint="Department"
-
-                        android:textColorHint="#7E97A7"
-
-                        app:hintTextColor="#7E97A7"
-
-                        app:boxBackgroundMode="filled"
-
-                        app:boxBackgroundColor="#EEF6FB"
-
-                        app:boxStrokeColor="#1BA8E8"
-
-                        app:boxStrokeWidth="1dp"
-
-                        app:boxStrokeWidthFocused="2dp"
-
-                        app:boxCornerRadiusTopStart="24dp"
-                        app:boxCornerRadiusTopEnd="24dp"
-                        app:boxCornerRadiusBottomStart="24dp"
-                        app:boxCornerRadiusBottomEnd="24dp">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etDepartment"
-
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-
-                            android:padding="18dp"
-
-                            android:textColor="#111111"
-
-                            android:textSize="15sp"/>
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- YEAR -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-
-                        android:layout_marginTop="20dp"
-
-                        android:hint="Year"
-
-                        android:textColorHint="#7E97A7"
-
-                        app:hintTextColor="#7E97A7"
-
-                        app:boxBackgroundMode="filled"
-
-                        app:boxBackgroundColor="#EEF6FB"
-
-                        app:boxStrokeColor="#1BA8E8"
-
-                        app:boxStrokeWidth="1dp"
-
-                        app:boxStrokeWidthFocused="2dp"
-
-                        app:boxCornerRadiusTopStart="24dp"
-                        app:boxCornerRadiusTopEnd="24dp"
-                        app:boxCornerRadiusBottomStart="24dp"
-                        app:boxCornerRadiusBottomEnd="24dp">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etYear"
-
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-
-                            android:padding="18dp"
-
-                            android:textColor="#111111"
-
-                            android:textSize="15sp"/>
-
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- SEMESTER -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-
                         android:layout_marginTop="20dp"
-
                         android:hint="Semester"
-
                         android:textColorHint="#7E97A7"
-
                         app:hintTextColor="#7E97A7"
-
                         app:boxBackgroundMode="filled"
-
                         app:boxBackgroundColor="#EEF6FB"
-
                         app:boxStrokeColor="#1BA8E8"
-
                         app:boxStrokeWidth="1dp"
-
                         app:boxStrokeWidthFocused="2dp"
-
                         app:boxCornerRadiusTopStart="24dp"
                         app:boxCornerRadiusTopEnd="24dp"
                         app:boxCornerRadiusBottomStart="24dp"
@@ -279,17 +156,121 @@
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etSemester"
-
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-
                             android:padding="18dp"
-
                             android:textColor="#111111"
-
                             android:textSize="15sp"/>
-
                     </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- SECTION -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:hint="Section"
+                        android:textColorHint="#7E97A7"
+                        app:hintTextColor="#7E97A7"
+                        app:boxBackgroundMode="filled"
+                        app:boxBackgroundColor="#EEF6FB"
+                        app:boxStrokeColor="#1BA8E8"
+                        app:boxStrokeWidth="1dp"
+                        app:boxStrokeWidthFocused="2dp"
+                        app:boxCornerRadiusTopStart="24dp"
+                        app:boxCornerRadiusTopEnd="24dp"
+                        app:boxCornerRadiusBottomStart="24dp"
+                        app:boxCornerRadiusBottomEnd="24dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etSection"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="18dp"
+                            android:textColor="#111111"
+                            android:textSize="15sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- YEAR -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:hint="Year"
+                        android:textColorHint="#7E97A7"
+                        app:hintTextColor="#7E97A7"
+                        app:boxBackgroundMode="filled"
+                        app:boxBackgroundColor="#EEF6FB"
+                        app:boxStrokeColor="#1BA8E8"
+                        app:boxStrokeWidth="1dp"
+                        app:boxStrokeWidthFocused="2dp"
+                        app:boxCornerRadiusTopStart="24dp"
+                        app:boxCornerRadiusTopEnd="24dp"
+                        app:boxCornerRadiusBottomStart="24dp"
+                        app:boxCornerRadiusBottomEnd="24dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etYear"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="18dp"
+                            android:textColor="#111111"
+                            android:textSize="15sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- ACADEMIC SESSION -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:hint="Academic Session"
+                        android:textColorHint="#7E97A7"
+                        app:hintTextColor="#7E97A7"
+                        app:boxBackgroundMode="filled"
+                        app:boxBackgroundColor="#EEF6FB"
+                        app:boxStrokeColor="#1BA8E8"
+                        app:boxStrokeWidth="1dp"
+                        app:boxStrokeWidthFocused="2dp"
+                        app:boxCornerRadiusTopStart="24dp"
+                        app:boxCornerRadiusTopEnd="24dp"
+                        app:boxCornerRadiusBottomStart="24dp"
+                        app:boxCornerRadiusBottomEnd="24dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etAcademicSession"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="18dp"
+                            android:textColor="#111111"
+                            android:textSize="15sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- DEPARTMENT -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:hint="Department"
+                        android:textColorHint="#7E97A7"
+                        app:hintTextColor="#7E97A7"
+                        app:boxBackgroundMode="filled"
+                        app:boxBackgroundColor="#EEF6FB"
+                        app:boxStrokeColor="#1BA8E8"
+                        app:boxStrokeWidth="1dp"
+                        app:boxStrokeWidthFocused="2dp"
+                        app:boxCornerRadiusTopStart="24dp"
+                        app:boxCornerRadiusTopEnd="24dp"
+                        app:boxCornerRadiusBottomStart="24dp"
+                        app:boxCornerRadiusBottomEnd="24dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDepartment"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="18dp"
+                            android:textColor="#111111"
+                            android:textSize="15sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
 
                     <!-- CREATE BUTTON -->
                     <com.google.android.material.button.MaterialButton

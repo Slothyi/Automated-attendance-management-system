@@ -242,6 +242,18 @@ class AdminDashboardActivity : AppCompatActivity() {
             )
 
         // =========================
+        // BACK BUTTON
+        // =========================
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val intent = Intent(this@AdminDashboardActivity, AdminLoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
+                finish()
+            }
+        })
+
+        // =========================
         // LOAD CLASSES
         // =========================
         loadClasses()
@@ -541,7 +553,8 @@ class AdminDashboardActivity : AppCompatActivity() {
 
         val selectedClass = classList.firstOrNull { it.class_id == classId }
         val classroomBeacon = if (selectedClass != null) {
-            "CLASS_${selectedClass.department.uppercase().replace(" ", "_").trim()}_${selectedClass.section.uppercase().replace(" ", "_").trim()}"
+            val suffix = classId.takeLast(4).uppercase()
+            "CLASS_${selectedClass.department.uppercase().replace(" ", "_").trim()}_${selectedClass.section.uppercase().replace(" ", "_").trim()}_${suffix}"
         } else {
             "CLASS_CSE_A"
         }
@@ -737,57 +750,26 @@ class AdminDashboardActivity : AppCompatActivity() {
         classroomBeacon: String
     ) {
 
-        val advertisePermission =
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            val advertisePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADVERTISE)
+            val connectPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
 
-            ContextCompat.checkSelfPermission(
+            if (advertisePermission != PackageManager.PERMISSION_GRANTED || connectPermission != PackageManager.PERMISSION_GRANTED) {
+                // Store values to resume after permissions dialog
+                pendingSessionCode = sessionCode
+                pendingSessionUuid = sessionUuid
+                pendingClassroomBeacon = classroomBeacon
 
-                this,
-
-                Manifest.permission
-                    .BLUETOOTH_ADVERTISE
-            )
-
-        val connectPermission =
-
-            ContextCompat.checkSelfPermission(
-
-                this,
-
-                Manifest.permission
-                    .BLUETOOTH_CONNECT
-            )
-
-        if (
-
-            advertisePermission !=
-            PackageManager.PERMISSION_GRANTED ||
-
-            connectPermission !=
-            PackageManager.PERMISSION_GRANTED
-        ) {
-
-            // Store values to resume after permissions dialog
-            pendingSessionCode = sessionCode
-            pendingSessionUuid = sessionUuid
-            pendingClassroomBeacon = classroomBeacon
-
-            ActivityCompat.requestPermissions(
-
-                this,
-
-                arrayOf(
-
-                    Manifest.permission
-                        .BLUETOOTH_ADVERTISE,
-
-                    Manifest.permission
-                        .BLUETOOTH_CONNECT
-                ),
-
-                200
-            )
-
-            return
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(
+                        Manifest.permission.BLUETOOTH_ADVERTISE,
+                        Manifest.permission.BLUETOOTH_CONNECT
+                    ),
+                    200
+                )
+                return
+            }
         }
 
         try {
@@ -870,14 +852,9 @@ class AdminDashboardActivity : AppCompatActivity() {
             }
 
             // Save original name and change name to simulate beacon
-            try {
-                if (originalBluetoothName == null) {
-                    originalBluetoothName = bluetoothAdapter.name
-                }
-                bluetoothAdapter.name = classroomBeacon
-            } catch (e: SecurityException) {
-                e.printStackTrace()
-            }
+            // We NO LONGER rename the bluetooth adapter, as Android 13+ strictly prohibits it.
+            // Instead, we broadcast a specific Service UUID with our beacon string as data.
+            val beaconUuid = ParcelUuid(java.util.UUID.fromString("0000BEEF-0000-1000-8000-00805f9b34fb"))
 
             val settings =
 
@@ -902,12 +879,14 @@ class AdminDashboardActivity : AppCompatActivity() {
                     .build()
 
             val data =
-
                 AdvertiseData.Builder()
-
-                    .setIncludeDeviceName(true)
-
+                    .addServiceUuid(beaconUuid)
+                    .setIncludeDeviceName(false)
                     .build()
+
+            val scanResponse = AdvertiseData.Builder()
+                .addServiceData(beaconUuid, classroomBeacon.toByteArray(Charsets.UTF_8))
+                .build()
 
             advertiseCallback =
 
@@ -951,9 +930,8 @@ class AdminDashboardActivity : AppCompatActivity() {
                     ?.startAdvertising(
 
                         settings,
-
                         data,
-
+                        scanResponse,
                         advertiseCallback
                     )
 
@@ -1052,7 +1030,7 @@ class AdminDashboardActivity : AppCompatActivity() {
 
             object : CountDownTimer(
 
-                30000,
+                120000,
                 1000
 
             ) {

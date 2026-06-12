@@ -49,14 +49,16 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
 
                 android:orientation="vertical"
+                
+                android:gravity="center_vertical"
 
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp"
 
-                android:paddingTop="70dp"
+                android:paddingTop="40dp"
                 android:paddingBottom="30dp">
 
                 <!-- ========================= -->
@@ -86,7 +88,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
 
-                            android:text="Admin Dashboard"
+                            android:text="Teacher Dashboard"
 
                             android:textColor="#FFFFFF"
 
@@ -155,7 +157,8 @@
                     <!-- RECYCLER -->
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
-                        android:layout_height="190dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="190dp"
 
                         android:layout_marginBottom="28dp"
 
@@ -408,7 +411,7 @@
             android:layout_width="match_parent"
             android:layout_height="58dp"
 
-            android:text="Class Calendar >"
+            android:text="Class Calendar"
 
             android:layout_marginBottom="30dp"
 
@@ -421,6 +424,10 @@
             android:textSize="15sp"
 
             android:backgroundTint="#2E8BFF"
+
+            app:icon="@drawable/ic_arrow_right"
+            app:iconGravity="textEnd"
+            app:iconTint="#FFFFFF"
 
             app:cornerRadius="22dp"/>
     </LinearLayout>

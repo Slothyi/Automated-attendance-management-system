@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.attendancepro.R
+import com.example.attendancepro.utils.SessionManager
 
 class SplashActivity : AppCompatActivity() {
 
@@ -24,9 +25,13 @@ class SplashActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_splash)
 
+        val sessionManager = SessionManager(this)
+
         Handler(Looper.getMainLooper()).postDelayed({
 
-            startActivity(Intent(this, RoleSelectionActivity::class.java))
+            val targetIntent = Intent(this, RoleSelectionActivity::class.java)
+            
+            startActivity(targetIntent)
             overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up)
 
             finish()

@@ -7,6 +7,7 @@ import okhttp3.RequestBody
 
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -134,7 +135,10 @@ interface ApiService {
     fun getClassAttendanceReport(
 
         @Path("class_id")
-        classId: String
+        classId: String,
+
+        @Query("date")
+        date: String? = null
 
     ): Call<AttendanceReportResponse>
 
@@ -257,5 +261,13 @@ interface ApiService {
     @POST("api/auth/reset-password")
     fun resetPassword(
         @Body request: ResetPasswordRequest
+    ): Call<Map<String, Any>>
+
+    // =========================
+    // 🗑 DELETE CLASS
+    // =========================
+    @DELETE("api/class/{id}")
+    fun deleteClass(
+        @Path("id") id: String
     ): Call<Map<String, Any>>
 }

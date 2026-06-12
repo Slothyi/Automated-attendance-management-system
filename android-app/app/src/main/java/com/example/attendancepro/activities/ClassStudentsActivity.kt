@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.ImageView
+import android.app.AlertDialog
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -138,21 +140,72 @@ class ClassStudentsActivity : AppCompatActivity() {
         // 📊 VIEW REPORT
         // =========================
         btnViewReport.setOnClickListener {
-
-            val intent = Intent(
-
-                this,
-
-                AttendanceReportActivity::class.java
-            )
-
-            intent.putExtra(
-                "CLASS_ID",
-                classId
-            )
-
+            val intent = Intent(this, AttendanceReportActivity::class.java)
+            intent.putExtra("CLASS_ID", classId)
             startActivity(intent)
         }
+
+        // =========================
+        // 🗑 DELETE CLASS
+        // =========================
+        val btnDeleteClass: ImageView = findViewById(R.id.btnDeleteClass)
+        btnDeleteClass.setOnClickListener {
+            val dialog = android.app.Dialog(this)
+            dialog.setContentView(R.layout.dialog_delete_class)
+            dialog.setCancelable(true)
+            
+            // Make system dialog background transparent to respect CardView corner radius
+            dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            
+            // Apply glassmorphism blur or dim
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                dialog.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+                dialog.window?.attributes?.blurBehindRadius = 30
+            } else {
+                dialog.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+                dialog.window?.attributes?.dimAmount = 0.7f
+            }
+            
+            val btnCancel = dialog.findViewById<android.widget.Button>(R.id.btnCancel)
+            val btnConfirm = dialog.findViewById<android.widget.Button>(R.id.btnConfirm)
+            
+            btnCancel.setOnClickListener {
+                dialog.dismiss()
+            }
+            
+            btnConfirm.setOnClickListener {
+                dialog.dismiss()
+                deleteClass()
+            }
+            
+            dialog.show()
+            // Set dialog width to 90% of screen so buttons are never squished
+            dialog.window?.setLayout(
+                (resources.displayMetrics.widthPixels * 0.90).toInt(),
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        }
+    }
+
+    private fun deleteClass() {
+        RetrofitClient.instance.deleteClass(classId)
+            .enqueue(object : Callback<Map<String, Any>> {
+                override fun onResponse(
+                    call: Call<Map<String, Any>>,
+                    response: Response<Map<String, Any>>
+                ) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(this@ClassStudentsActivity, "Class deleted successfully", Toast.LENGTH_SHORT).show()
+                        finish()
+                    } else {
+                        Toast.makeText(this@ClassStudentsActivity, "Failed to delete class", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<Map<String, Any>>, t: Throwable) {
+                    Toast.makeText(this@ClassStudentsActivity, t.message, Toast.LENGTH_SHORT).show()
+                }
+            })
     }
 
     // =========================

@@ -4,7 +4,8 @@ from fastapi import (
     UploadFile,
     Form,
     HTTPException,
-    Depends
+    Depends,
+    Query
 )
 
 from fastapi.security import (
@@ -261,23 +262,18 @@ def get_admin_user(
 ):
 
     token = credentials.credentials
-
     user = verify_token(token)
-
     if not user:
-
         raise HTTPException(
             status_code=401,
-            detail="Invalid token"
+            detail=f"Invalid token (token was: {token[:10]}...)"
         )
-
     if user.get("role") != "admin":
-
+        print(f"❌ 403 Forbidden: Admin access required. Role found in token: {user.get('role')}")
         raise HTTPException(
             status_code=403,
-            detail="Admin access required"
+            detail=f"Admin access required. Role found: {user.get('role')}"
         )
-
     return user
 
 # =========================
@@ -288,6 +284,8 @@ def class_report(
 
     class_id: str,
 
+    date: str = Query(default=None),
+
     user: dict = Depends(get_admin_user)
 
 ):
@@ -295,7 +293,8 @@ def class_report(
     try:
 
         return get_class_attendance_report(
-            class_id
+            class_id,
+            date
         )
 
     except Exception as e:
@@ -331,6 +330,26 @@ def student_classes(
 @router.post("/manual_update")
 def manual_update(
     payload: ManualAttendancePayload,
-    user: dict = Depends(get_current_user)
+    user: dict = Depends(get_admin_user)
 ):
     return update_manual_attendance(payload.class_id, payload.students)
+
+
+# =========================
+# 📥 EXPORT CUSTOM EXCEL REPORT
+# =========================
+@router.get("/export_excel/{class_id}")
+def export_excel(
+    class_id: str,
+    token: str = None
+):
+    from app.utils.jwt_handler import verify_token
+    if token:
+        user = verify_token(token)
+        if not user or user.get("role") != "admin":
+            raise HTTPException(status_code=403, detail="Admin access required")
+    else:
+        raise HTTPException(status_code=401, detail="Token required")
+        
+    from app.controllers.attendance_controller import export_custom_attendance_excel
+    return export_custom_attendance_excel(class_id)

@@ -3,6 +3,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
 
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 
@@ -12,36 +13,46 @@
 
     android:background="#0E0717">
 
-    <!-- 🏫 CLASS NAME -->
-    <TextView
-        android:id="@+id/tvClassName"
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:layout_gravity="center"
-        android:text="Class Name"
+        <!-- 🏫 CLASS NAME -->
+        <TextView
+            android:id="@+id/tvClassName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="15dp"
+            android:text="Class Name"
+            android:textColor="#FFFFFF"
+            android:textSize="30sp"
+            android:textStyle="bold" />
 
-        android:textColor="#FFFFFF"
+        <!-- 🆔 CLASS ID -->
+        <TextView
+            android:id="@+id/tvClassId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/tvClassName"
+            android:text="Class ID"
+            android:textColor="#BCA7F5"
+            android:textSize="14sp"
+            android:layout_marginTop="6dp" />
 
-        android:textSize="30sp"
-
-        android:textStyle="bold"/>
-
-    <!-- 🆔 CLASS ID -->
-    <TextView
-        android:id="@+id/tvClassId"
-
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Class ID"
-
-        android:textColor="#BCA7F5"
-
-        android:textSize="14sp"
-
-        android:layout_marginTop="6dp"/>
+        <!-- 🗑 DELETE BUTTON -->
+        <ImageView
+            android:id="@+id/btnDeleteClass"
+            android:layout_width="32dp"
+            android:layout_height="36dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="25dp"
+            android:src="@android:drawable/ic_menu_delete"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            app:tint="#FF5252" />
+    </RelativeLayout>
 
     <!-- 📊 STATS -->
     <TextView

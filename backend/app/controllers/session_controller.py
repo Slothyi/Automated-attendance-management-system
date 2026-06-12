@@ -81,7 +81,7 @@ def start_attendance_session(
     try:
         from app.config.db import classes_collection
         from bson import ObjectId
-        from app.utils.csv_export import initialize_class_csv
+        from app.utils.sheet_export import initialize_class_csv
         
         class_data = classes_collection.find_one({"_id": ObjectId(class_id)})
         if class_data:
@@ -94,7 +94,11 @@ def start_attendance_session(
                 students=students,
                 date=today_str,
                 section=class_data.get("section", ""),
-                department=class_data.get("department", "")
+                department=class_data.get("department", ""),
+                course_code=class_data.get("course_code", "N/A"),
+                semester=str(class_data.get("semester", "N/A")),
+                year=str(class_data.get("year", "N/A")),
+                academic_session=class_data.get("academic_session", "N/A"),
             )
     except Exception as e:
         print(f"⚠️ Error initializing CSV on session start: {e}")
@@ -136,7 +140,7 @@ def start_attendance_session(
 
             datetime.now(
                 timezone.utc
-            ) + timedelta(seconds=30)
+            ) + timedelta(minutes=2)
     })
 
     return {
@@ -181,7 +185,15 @@ def stop_attendance_session(class_id):
     if session:
         session_created_at = session.get("created_at", datetime.now(timezone.utc))
         session_date = session_created_at.strftime("%Y-%m-%d")
+        session_uuid = session.get("session_uuid")
         
+        # Calculate session time string
+        ist_timezone = timezone(timedelta(hours=5, minutes=30))
+        if session_created_at.tzinfo is None:
+            session_created_at = session_created_at.replace(tzinfo=timezone.utc)
+        session_ist = session_created_at.astimezone(ist_timezone)
+        session_time_str = session_ist.strftime("%Y-%m-%d %H:%M:%S")
+
         # Stop the session
         attendance_sessions_collection.update_many(
             {"class_id": class_id, "active": True},
@@ -203,8 +215,6 @@ def stop_attendance_session(class_id):
 
             # 4. Mark remaining as Absent
             absent_records_to_insert = []
-            csv_rows_to_append = []
-            now_time_str = datetime.now(timezone.utc).strftime("%H:%M:%S")
 
             for student in all_students:
                 roll = student.get("roll")
@@ -221,36 +231,15 @@ def stop_attendance_session(class_id):
                         "class_id": class_id,
                         "class_name": class_name,
                         "date": session_date,
+                        "session_uuid": session_uuid,
+                        "session_time": session_time_str,
                         "status": "Absent",
                         "created_at": datetime.now(timezone.utc)
                     })
 
-                    csv_rows_to_append.append([
-                        session_date,
-                        roll,
-                        name,
-                        "Absent",
-                        now_time_str
-                    ])
-
-            # Insert to DB
-            if absent_records_to_insert:
-                attendance_collection.insert_many(absent_records_to_insert)
-
-            # Append to CSV
-            if csv_rows_to_append:
-                try:
-                    os.makedirs("uploads", exist_ok=True)
-                    csv_path = f"uploads/{class_id}_attendance.csv"
-                    file_exists = os.path.isfile(csv_path)
-
-                    with open(csv_path, mode='a', newline='', encoding='utf-8') as file:
-                        writer = csv.writer(file)
-                        if not file_exists:
-                            writer.writerow(["Date", "Roll Number", "Name", "Status", "Time"])
-                        writer.writerows(csv_rows_to_append)
-                except Exception as e:
-                    print("CSV Error (Absent):", e)
+        # Insert to DB
+        if absent_records_to_insert:
+            attendance_collection.insert_many(absent_records_to_insert)
 
     return {
         "success": True,
@@ -328,17 +317,16 @@ def get_active_session(class_id, student_id=None):
                     if class_id not in class_ids:
                         class_ids.append(class_id)
 
-    session = (
-        attendance_sessions_collection
-        .find_one({
-
+    # Find ONLY the session that belongs to a class
+    # the student is actually enrolled in
+    sessions = list(
+        attendance_sessions_collection.find({
             "class_id": {"$in": class_ids},
-
             "active": True
         })
     )
 
-    if not session:
+    if not sessions:
 
         return {
 
@@ -348,22 +336,42 @@ def get_active_session(class_id, student_id=None):
                 "No active session"
         }
 
+    # If only one active session, return it directly
+    if len(sessions) == 1:
+        session = sessions[0]
+        return {
+            "success": True,
+            "session_code": session["session_code"],
+            "session_uuid": session["session_uuid"],
+            "bluetooth_name": session["bluetooth_name"],
+            "classroom_beacon": session.get("classroom_beacon", "CLASS_CSE_A"),
+            "otp_code": session.get("otp_code", ""),
+            "session_class_id": session["class_id"]
+        }
+
+    # If multiple active sessions exist (two teachers side by side),
+    # return all of them so the student app can BLE-match the correct one
+    all_sessions = []
+    for s in sessions:
+        all_sessions.append({
+            "session_code": s["session_code"],
+            "session_uuid": s["session_uuid"],
+            "bluetooth_name": s["bluetooth_name"],
+            "classroom_beacon": s.get("classroom_beacon", "CLASS_CSE_A"),
+            "otp_code": s.get("otp_code", ""),
+            "session_class_id": s["class_id"]
+        })
+
+    # Return the first session as the primary (for backward compat)
+    # plus all sessions in an array for the app to match by BLE
+    primary = all_sessions[0]
     return {
-
         "success": True,
-
-        "session_code":
-            session["session_code"],
-
-        "session_uuid":
-            session["session_uuid"],
-
-        "bluetooth_name":
-            session["bluetooth_name"],
-
-        "classroom_beacon":
-            session.get("classroom_beacon", "CLASS_CSE_A"),
-
-        "otp_code":
-            session.get("otp_code", "")
+        "session_code": primary["session_code"],
+        "session_uuid": primary["session_uuid"],
+        "bluetooth_name": primary["bluetooth_name"],
+        "classroom_beacon": primary["classroom_beacon"],
+        "otp_code": primary["otp_code"],
+        "session_class_id": primary["session_class_id"],
+        "all_sessions": all_sessions
     }

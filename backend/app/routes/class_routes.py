@@ -34,17 +34,13 @@ router = APIRouter()
 # 🏫 CREATE CLASS MODEL
 # =========================
 class CreateClassRequest(BaseModel):
-
-    class_name: str
-
+    course_name: str
+    course_code: str
+    semester: str
     section: str
-
-    department: str
-
     year: str
-
-    semester: str 
-    
+    academic_session: str
+    department: str
     admin_id: str
 
 
@@ -75,17 +71,13 @@ class AddStudentRequest(BaseModel):
 def create_new_class(data: CreateClassRequest):
 
     return create_class(
-
-        class_name=data.class_name,
-
-        section=data.section,
-
-        department=data.department,
-
-        year=data.year,
-        
+        course_name=data.course_name,
+        course_code=data.course_code,
         semester=data.semester,
-
+        section=data.section,
+        year=data.year,
+        academic_session=data.academic_session,
+        department=data.department,
         admin_id=data.admin_id
     )
 
@@ -149,3 +141,10 @@ def calendar():
 
     return get_class_calendar()
 
+# =========================
+# 🗑 DELETE CLASS
+# =========================
+@router.delete("/{class_id}")
+def delete_class_endpoint(class_id: str):
+    from app.controllers.class_controller import delete_class
+    return delete_class(class_id)

@@ -11,8 +11,14 @@ import androidx.cardview.widget.CardView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.attendancepro.R
+import com.example.attendancepro.utils.SessionManager
+import android.os.Handler
+import android.os.Looper
 
 class RoleSelectionActivity : AppCompatActivity() {
+
+    private lateinit var btnAdmin: CardView
+    private lateinit var btnStudent: CardView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,8 +35,8 @@ class RoleSelectionActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_role_selection)
 
-        val btnAdmin = findViewById<CardView>(R.id.btnAdmin)
-        val btnStudent = findViewById<CardView>(R.id.btnStudent)
+        btnAdmin = findViewById(R.id.btnAdmin)
+        btnStudent = findViewById(R.id.btnStudent)
 
         val logoContainer = findViewById<View>(R.id.logoContainer)
 
@@ -60,30 +66,55 @@ class RoleSelectionActivity : AppCompatActivity() {
             .setDuration(900)
             .start()
 
+        val sessionManager = SessionManager(this)
+
         // BUTTON CLICK ANIMATION + NAVIGATION
 
         btnAdmin.setOnClickListener {
 
             animateCard(it)
 
-            startActivity(
-                Intent(
-                    this,
-                    AdminLoginActivity::class.java
-                )
-            )
+            if (sessionManager.isSessionValid() && !sessionManager.getAdminId().isNullOrEmpty()) {
+                // Auto login as Teacher
+                it.alpha = 0.5f
+                it.isClickable = false
+                btnStudent.isClickable = false
+                
+                Handler(Looper.getMainLooper()).postDelayed({
+                    startActivity(Intent(this, AdminDashboardActivity::class.java))
+                }, 800)
+            } else {
+                startActivity(Intent(this, AdminLoginActivity::class.java))
+            }
         }
 
         btnStudent.setOnClickListener {
 
             animateCard(it)
 
-            startActivity(
-                Intent(
-                    this,
-                    StudentLoginActivity::class.java
-                )
-            )
+            if (sessionManager.isSessionValid() && sessionManager.getAdminId().isNullOrEmpty()) {
+                // Auto login as Student
+                it.alpha = 0.5f
+                it.isClickable = false
+                btnAdmin.isClickable = false
+                
+                Handler(Looper.getMainLooper()).postDelayed({
+                    startActivity(Intent(this, DashboardActivity::class.java))
+                }, 800)
+            } else {
+                startActivity(Intent(this, StudentLoginActivity::class.java))
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Reset button states when navigating back from the dashboard
+        if (::btnAdmin.isInitialized && ::btnStudent.isInitialized) {
+            btnAdmin.alpha = 1f
+            btnAdmin.isClickable = true
+            btnStudent.alpha = 1f
+            btnStudent.isClickable = true
         }
     }
 
