@@ -141,15 +141,10 @@ def _render_header_block(ws, total_cols, class_name, course_code, department, se
         ("Academic Session", academic_session or "N/A"),
     ]
 
-    if is_summary:
-        PAIR_ANCHORS = [1, 3, 5]
-        LBL_SPAN = 1
-        VAL_SPAN = 1
-    else:
-        # Give 'Academic Session' label more space (span 3 columns)
-        PAIR_ANCHORS = [1, 8, 15]
-        LBL_SPAN = 3
-        VAL_SPAN = 3
+    pair_width = max(2, total_cols // 3)
+    LBL_SPAN = max(1, pair_width // 2)
+    VAL_SPAN = max(1, pair_width - LBL_SPAN)
+    PAIR_ANCHORS = [1, 1 + pair_width, 1 + 2 * pair_width]
 
     ws.row_dimensions[4].height = 22
     ws.row_dimensions[5].height = 22
@@ -164,7 +159,7 @@ def _render_header_block(ws, total_cols, class_name, course_code, department, se
             lbl_start = anchor
             lbl_end   = anchor + LBL_SPAN - 1
             val_start = anchor + LBL_SPAN
-            val_end   = anchor + LBL_SPAN + VAL_SPAN - 1
+            val_end   = total_cols if pair_idx == 2 else anchor + LBL_SPAN + VAL_SPAN - 1
 
             if lbl_end > lbl_start:
                 try:
@@ -292,8 +287,8 @@ def _build_workbook(
         ws = wb.create_sheet(title=month_name)
 
         num_date_cols = len(m_dates)
-        total_cols = 3 + num_date_cols + 6  # Name, Roll, Section + dates + 3 month stats + 3 global stats
-        total_cols = max(total_cols, 22) # Ensure enough columns for the metadata header
+        total_cols = 3 + num_date_cols + 3  # Name, Roll, Section + dates + 3 month stats
+        # Removed hardcoded max(total_cols, 22) so header matches table width exactly
 
         _render_header_block(ws, total_cols, class_name, course_code, department, section, semester, year, academic_session, is_summary=False)
 
@@ -304,10 +299,7 @@ def _build_workbook(
         headers.extend([
             "Total Presents (in this month)", 
             "Total Absents (in this month)", 
-            "Percentage (in this month)",
-            "Total Present (throughout Session)",
-            "Total Absent (throughout Session)",
-            "Percentage (throughout Session)"
+            "Percentage (in this month)"
         ])
 
         ws.row_dimensions[7].height = 45 # Make header taller for long titles
@@ -354,8 +346,14 @@ def _build_workbook(
                 cell.alignment = CENTER
 
                 if str(val).startswith("P"):
-                    cell.value = "P"
-                    cell.font = PRESENT_FONT
+                    if " (" in str(val):
+                        time_part = str(val).split(" (")[1].replace(")", "")
+                        cell.value = f"P\n{time_part}"
+                        cell.font = Font(name="Segoe UI", size=8, bold=True, color="065F46")
+                        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+                    else:
+                        cell.value = "P"
+                        cell.font = PRESENT_FONT
                     cell.fill = PRESENT_FILL
                     m_presents += 1
                 elif str(val).startswith("A"):
@@ -385,23 +383,7 @@ def _build_workbook(
             cell_mpct = ws.cell(row=row_idx, column=c_idx, value=f"{m_pct}%")
             _apply_cell_style(cell_mpct, PCT_GREEN_FONT if m_pct >= 75 else (PCT_YELLOW_FONT if m_pct >= 50 else PCT_RED_FONT), CENTER, CELL_BORDER, PCT_GREEN_FILL if m_pct >= 75 else (PCT_YELLOW_FILL if m_pct >= 50 else PCT_RED_FILL))
 
-            # Global Stats
-            g_pres = global_stats[roll]["presents"]
-            g_abs = global_stats[roll]["absents"]
-            g_total = g_pres + g_abs
-            g_pct = round((g_pres / g_total) * 100, 1) if g_total > 0 else 0.0
 
-            c_idx += 1
-            cell_gp = ws.cell(row=row_idx, column=c_idx, value=g_pres)
-            _apply_cell_style(cell_gp, Font(name="Segoe UI", size=10, bold=True, color="065F46"), CENTER, CELL_BORDER, PRESENTS_FILL)
-
-            c_idx += 1
-            cell_ga = ws.cell(row=row_idx, column=c_idx, value=g_abs)
-            _apply_cell_style(cell_ga, Font(name="Segoe UI", size=10, bold=True, color="991B1B"), CENTER, CELL_BORDER, ABSENTS_FILL)
-
-            c_idx += 1
-            cell_gpct = ws.cell(row=row_idx, column=c_idx, value=f"{g_pct}%")
-            _apply_cell_style(cell_gpct, PCT_GREEN_FONT if g_pct >= 75 else (PCT_YELLOW_FONT if g_pct >= 50 else PCT_RED_FONT), CENTER, CELL_BORDER, PCT_GREEN_FILL if g_pct >= 75 else (PCT_YELLOW_FILL if g_pct >= 50 else PCT_RED_FILL))
 
         # COLUMN WIDTHS
         ws.column_dimensions[get_column_letter(1)].width = 22
@@ -414,9 +396,6 @@ def _build_workbook(
         ws.column_dimensions[get_column_letter(c_idx)].width = 16
         ws.column_dimensions[get_column_letter(c_idx+1)].width = 16
         ws.column_dimensions[get_column_letter(c_idx+2)].width = 14
-        ws.column_dimensions[get_column_letter(c_idx+3)].width = 20
-        ws.column_dimensions[get_column_letter(c_idx+4)].width = 20
-        ws.column_dimensions[get_column_letter(c_idx+5)].width = 16
 
     return wb
 

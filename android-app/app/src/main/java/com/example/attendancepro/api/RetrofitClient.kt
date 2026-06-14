@@ -49,15 +49,15 @@ object RetrofitClient {
                 android.os.Handler(android.os.Looper.getMainLooper()).post {
                     android.widget.Toast.makeText(
                         App.context,
-                        "Session expired. Another device has logged in.",
+                        "Session expired. Please log in again.",
                         android.widget.Toast.LENGTH_LONG
                     ).show()
-                }
 
-                val intent = Intent(App.context, StudentLoginActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    val intent = Intent(App.context, com.example.attendancepro.activities.RoleSelectionActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    App.context.startActivity(intent)
                 }
-                App.context.startActivity(intent)
             }
 
             response

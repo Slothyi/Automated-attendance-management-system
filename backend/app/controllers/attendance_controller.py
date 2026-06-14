@@ -955,7 +955,7 @@ def export_custom_attendance_excel(class_id: str):
         [("Section:", section), ("Academic Session:", academic_session), ("Total Students:", len(students_dict))]
     ]
     
-    for r_idx, row_data in enumerate(metadata, start=2):
+    for r_idx, row_data in enumerate(metadata, start=3):
         ws.row_dimensions[r_idx].height = 20
         c_idx = 1
         for label, val in row_data:
@@ -1000,8 +1000,8 @@ def export_custom_attendance_excel(class_id: str):
         cell.alignment = center_align if c_idx > 1 else left_align
         cell.border = header_border
         
-    # FREEZE PANES: Locks rows 1-6 and columns A-C
-    ws.freeze_panes = "D7"
+    # FREEZE PANES: Locks rows 1-6 only
+    ws.freeze_panes = "A7"
         
     # 4. Data Rows
     def roll_sort_key(roll_str):

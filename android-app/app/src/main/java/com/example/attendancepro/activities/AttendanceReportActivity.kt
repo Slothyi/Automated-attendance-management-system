@@ -44,6 +44,7 @@ class AttendanceReportActivity : AppCompatActivity() {
     private lateinit var btnReportMenu: ImageView
 
     private lateinit var tvSelectedDate: TextView
+    private lateinit var tvSessionSlot: TextView
     private lateinit var btnDatePrev: ImageView
     private lateinit var btnDateNext: ImageView
 
@@ -85,6 +86,7 @@ class AttendanceReportActivity : AppCompatActivity() {
         btnReportMenu = findViewById(R.id.btnReportMenu)
 
         tvSelectedDate = findViewById(R.id.tvSelectedDate)
+        tvSessionSlot = findViewById(R.id.tvSessionSlot)
         btnDatePrev = findViewById(R.id.btnDatePrev)
         btnDateNext = findViewById(R.id.btnDateNext)
 
@@ -124,7 +126,7 @@ class AttendanceReportActivity : AppCompatActivity() {
         }
 
         // Tap on the date text to open date picker
-        tvSelectedDate.setOnClickListener {
+        findViewById<LinearLayout>(R.id.llDatePicker).setOnClickListener {
             showSingleDatePicker()
         }
 
@@ -173,6 +175,31 @@ class AttendanceReportActivity : AppCompatActivity() {
                         // Format the date display
                         val displayDate = formatDateDisplay(reportDate)
                         tvSelectedDate.text = displayDate
+
+                        // Session Slot display
+                        if (reportDate.contains(" ")) {
+                            try {
+                                val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                                val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+                                val startDate = inputFormat.parse(reportDate)
+                                if (startDate != null) {
+                                    val startStr = timeFormat.format(startDate).lowercase(Locale.getDefault())
+                                    val calendar = java.util.Calendar.getInstance()
+                                    calendar.time = startDate
+                                    calendar.add(java.util.Calendar.MINUTE, 45)
+                                    val endStr = timeFormat.format(calendar.time).lowercase(Locale.getDefault())
+                                    
+                                    tvSessionSlot.text = "$startStr - $endStr"
+                                    tvSessionSlot.visibility = android.view.View.VISIBLE
+                                } else {
+                                    tvSessionSlot.visibility = android.view.View.GONE
+                                }
+                            } catch (e: Exception) {
+                                tvSessionSlot.visibility = android.view.View.GONE
+                            }
+                        } else {
+                            tvSessionSlot.visibility = android.view.View.GONE
+                        }
 
                         // Update arrow visibility
                         btnDatePrev.alpha = if (currentDateIndex < availableDates.size - 1) 1.0f else 0.3f
@@ -290,7 +317,7 @@ class AttendanceReportActivity : AppCompatActivity() {
         return try {
             if (dateStr.contains(" ")) {
                 val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                val outputFormat = SimpleDateFormat("dd MMM yyyy (EEE) hh:mm a", Locale.getDefault())
+                val outputFormat = SimpleDateFormat("dd MMM yyyy (EEE)", Locale.getDefault())
                 val date = inputFormat.parse(dateStr)
                 if (date != null) outputFormat.format(date) else dateStr
             } else {

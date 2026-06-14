@@ -112,13 +112,14 @@
         <!-- 📅 DATE SELECTOR ROW -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="52dp"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/bg_date_selector_bar"
-            android:padding="4dp">
+            android:padding="6dp">
 
             <!-- LEFT ARROW -->
             <ImageView
@@ -133,24 +134,40 @@
                 android:focusable="true"
                 android:contentDescription="Previous date"/>
 
-            <!-- DATE TEXT (clickable for date picker) -->
-            <TextView
-                android:id="@+id/tvSelectedDate"
+            <!-- DATE AND SLOT TEXT (clickable for date picker) -->
+            <LinearLayout
+                android:id="@+id/llDatePicker"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:text="Today"
-                android:textColor="#8FE3FF"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:drawableStart="@drawable/ic_calendar_day"
-                android:drawablePadding="8dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:background="@android:color/transparent"
                 android:clickable="true"
-                android:focusable="true"/>
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground">
+
+                <TextView
+                    android:id="@+id/tvSelectedDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Today"
+                    android:textColor="#8FE3FF"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:drawableStart="@drawable/ic_calendar_day"
+                    android:drawablePadding="8dp" />
+
+                <TextView
+                    android:id="@+id/tvSessionSlot"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="00:00 - 00:45"
+                    android:textColor="#BCA7F5"
+                    android:textSize="13sp"
+                    android:layout_marginTop="2dp"
+                    android:visibility="gone" />
+            </LinearLayout>
 
             <!-- RIGHT ARROW -->
             <ImageView

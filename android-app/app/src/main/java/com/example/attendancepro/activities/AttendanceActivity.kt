@@ -405,6 +405,23 @@ class AttendanceActivity : AppCompatActivity() {
                                 if (rssi > existingMax) {
                                     detectedBeacons[decodedBeacon] = rssi
                                     println("Detected Beacon: $decodedBeacon, RSSI: $rssi")
+
+                                    // Early exit if we found a match
+                                    val matchedSession = allSessions.find { it.classroom_beacon.equals(decodedBeacon, ignoreCase = true) }
+                                    if (matchedSession != null && !finished) {
+                                        finished = true
+                                        try { scanner.stopScan(this) } catch (_: Exception) {}
+
+                                        detectedSessionCode = matchedSession.session_code ?: ""
+                                        expectedSessionUuid = matchedSession.session_uuid ?: ""
+                                        expectedClassroomBeacon = matchedSession.classroom_beacon ?: ""
+                                        expectedOtpCode = matchedSession.otp_code ?: ""
+
+                                        Handler(Looper.getMainLooper()).post {
+                                            statusText.text = "📡 Classroom Beacon Detected ($decodedBeacon)"
+                                            callback(true)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -504,7 +521,7 @@ class AttendanceActivity : AppCompatActivity() {
                     statusText.text = "❌ Mismatched Classroom"
                     callback(false)
                 }
-            }, 4000)
+            }, 12000)
 
         } catch (e: SecurityException) {
             e.printStackTrace()
